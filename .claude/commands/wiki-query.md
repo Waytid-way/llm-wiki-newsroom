@@ -51,7 +51,7 @@ Combining multiple types: `--edge-type cites,contradicts`. **The natural-languag
 **Search craft** (how to drive the content-search entry tool):
 - If you know the exact term·title·person name, lean `lex`; for conceptual·indirect phrasing, lean `vec`.
 - **Write the `intent` (what you seek + the nearby concepts to avoid)·`lex`·`vec` of `mcp__qmd__query` yourself** — do not pass the user's sentence as-is and leave it to the expansion model.
-- Agents use the MCP. `tools/query.py qmd …` is the path for human terminals·documentation examples.
+- Agents use the MCP — `mcp__qmd__*` is deferred, so a `ToolSearch` pre-load precedes the call. `tools/query.py qmd …` is the path for human terminals·documentation examples.
 
 ## Mode Routing (Query Type → Mode Dispatch)
 

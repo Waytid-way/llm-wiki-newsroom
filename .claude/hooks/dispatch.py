@@ -278,7 +278,7 @@ Ladder rung 1 first: does this need to exist at all? A no-op beats the cleverest
 The gist: the code you didn't write is best — reuse an existing helper before writing new code.
 Full discipline (the ladder·root-cause·output restraint) SoT: .claude/skills/ponytail-coding/SKILL.md.
 
-Non-blocking advisory (generation-time recommendation). Divides labor with karpathy (assumptions·success criteria)·/simplify (after-the-fact cleanup)."""
+Non-blocking advisory (generation-time recommendation). Divides labor with /simplify (after-the-fact cleanup)."""
 
 # ---------------------------------------------------------------- helpers
 

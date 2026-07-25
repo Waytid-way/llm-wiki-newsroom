@@ -58,11 +58,14 @@ every sibling caller still broken. Fix it once, where all callers route through.
 - Fewest files possible. Shortest working diff wins — but only once you understand the problem. The smallest change in the wrong place isn't lazy, it's a second bug.
 - Complex request? Ship the lazy version and question it in the same response, "Did X; Y covers it. Need full X? Say so." Never stall on an answer you can default.
 - Two stdlib options, same size? Take the one that's correct on edge cases. Lazy means writing less code, not picking the flimsier algorithm.
+- State the assumptions the lazy version rests on, in one line. Two readings of the request? Name both and pick one out loud — a silent pick ships the wrong rung confidently.
+- Turn the task into a verifiable goal before picking a rung: "add validation" → "invalid input rejected, valid input passes". "Make it work" is not a criterion, and a weak one costs a second round.
 - Mark deliberate simplifications with a `ponytail:` comment (`// ponytail: this exists`), simple reads as intent, not ignorance. Shortcut with a known ceiling (global lock, O(n²) scan, naive heuristic)? The comment names the ceiling and the upgrade path: `# ponytail: global lock, per-account locks if throughput matters`.
 
 ## Output
 
-Code first. Then at most three short lines: what was skipped, when to add it.
+Code first. Then at most three short lines: the assumptions it rests on, what
+was skipped, when to add it.
 No essays, no feature tours, no design notes. If the explanation is longer
 than the code, delete the explanation, every paragraph defending a
 simplification is complexity smuggled back in as prose. Explanation the user
@@ -129,5 +132,9 @@ are excluded because they conflict with this project's single hook dispatcher
 (`.claude/hooks/dispatch.*`). The `/ponytail` slash command referenced above is
 therefore not installed — set intensity (`lite|full|ultra`) via the skill
 argument or in prose ("ponytail ultra"). Scope is authoring `tools/` Python and the hook layer (`.claude/hooks/` py|sh); it
-divides labor with karpathy-guidelines (assumptions, success criteria) and
-`/simplify` (post-hoc cleanup).
+divides labor with `/simplify` (post-hoc cleanup).
+
+The two `## Rules` bullets on stated assumptions and verifiable goals are
+absorbed from [karpathy-guidelines](https://github.com/forrestchang/andrej-karpathy-skills)
+(§1 Think Before Coding, §4 Goal-Driven Execution) — © forrestchang, MIT
+License.

@@ -66,19 +66,6 @@ SoT: workflow + acceptance rule = [`agents/editor-in-chief.md`](.claude/agents/e
 
 ## Directory Structure
 
-```
-raw/                    # Immutable source documents (ingest input)
-wiki/                   # The content layer Claude maintains · Obsidian vault root
-  index·overview·contradiction  (root meta — no frontmatter)
-  sources/·entities/·concepts/·timelines/·overviews/·contradictions/·syntheses/·trails/
-graph/                  # Graph/cluster artifacts + cluster_labels.json (human-edited)
-wiki-export/            # Merged files for Claude.ai Project Knowledge
-tools/                  # Python scripts
-tests/                  # Regression tests for tools/ and hooks (pytest)
-.claude/                # These instructions
-  agents/   commands/   layers/   skills/   policies/   operations/   hooks/   memory/
-```
-
 The detailed directory layout + the auto-generated vs. human-edited split + placement rules: [`.claude/policies/directory-layout.md`](.claude/policies/directory-layout.md) is the SoT.
 
 ---
@@ -140,7 +127,7 @@ Each folder has a **single responsibility**; when adding a new instruction, use 
 - `guideline-writing` (`gdl.*`) — guideline-authoring craft for the instruction layer itself (operative rule vs recital, MUST/SHOULD/MAY, pruning, bloat control, blind review; the deliberation-narrative detectors run in `lint.py meta`)
 
 *Coding discipline* (`SKILL.md` only, not lint-measured):
-- `ponytail-coding` — lazy-senior code restraint (the YAGNI ladder, reuse first, root-cause fixes). Divides labor with karpathy-guidelines (assumptions, success criteria) and `/simplify` (after-the-fact cleanup).
+- `ponytail-coding` — lazy-senior code restraint (the YAGNI ladder, reuse first, root-cause fixes, stated assumptions, verifiable success criteria). Divides labor with `/simplify` (after-the-fact cleanup).
 
 **What does NOT belong here**:
 - Content-type page formats, section names, execution order — [`.claude/layers/`](.claude/layers/) (skills cover craft only; the layers apply it to this project).
@@ -180,7 +167,7 @@ Guideline-authoring voice and plan-bloat control are craft, not policy — they 
 
 **Responsibility**: detect harness events and automatically block or give feedback. The user of this folder (Claude) never reads it directly — the harness invokes it automatically.
 
-**Activation**: in `.claude/settings.json`, the hook `command` must be of the form `bash .claude/hooks/<name>.sh` (the `bash` prefix is mandatory). The Windows shell cannot run a bare `.sh` directly, so without the prefix every hook is silently disabled.
+**Activation**: in `.claude/settings.json`, the hook `command` must be of the form `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/<name>.sh"` — both the prefix and the anchor are mandatory. The Windows shell cannot run a bare `.sh` directly, so without `bash` every hook is silently disabled; a cwd-relative path resolves only while the session sits at the repo root, so without `$CLAUDE_PROJECT_DIR` every hook silently fails as soon as work moves into a subdirectory. Either failure surfaces as a non-blocking error, never as a block — the guard simply stops guarding.
 
 **Instructions located here**:
 - `lint-chain-guard.sh` (detects the lint stdout chain marker → blocks writing the report)

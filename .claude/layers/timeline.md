@@ -72,7 +72,7 @@ A timeline follows the encyclopedic summary-style and verifiable-attribution tra
 
 ### Execution order (step-by-step guide)
 
-1. **GROUND — identify sources**: identify topic-related sources in `wiki/sources/` in time order (qmd local search + Glob). For each event → fix the corresponding source-id **after confirming it exists** (do not invent one).
+1. **GROUND — identify sources**: identify topic-related sources in `wiki/sources/` in time order (`mcp__qmd__query`, pre-loaded via `ToolSearch` — Glob where unavailable). For each event → fix the corresponding source-id **after confirming it exists** (do not invent one).
 2. **Write `## Flow Summary`** — trajectory overview (one-line arrow) + per-period phase paragraphs + latest state. Trajectory only, without restating facts·numbers (`enc.summary-style`).
 3. **Write `### YYYY` dated entries** — years descending, each entry `- **YYYY-MM-DD** [[source-id]] — one line` (only sourceless historical anchors are `[[entity]]`-first). The one-line summary must be a fact the indexed source actually supports, and beware of mis-indexing a different event on the same date — cross-check against the source body (mis-attribution is the biggest risk, caught by Desk). **Inferred indexing**: if the event date precedes the indexed source's publication date and the source mentions it only as a retrospective·prior-precedent·vendor self-report rather than first-hand reporting, attach the caveat `(recorded as a prior precedent by the YYYY source)` to the line (blocks the impression of a first-hand report that does not exist).
 3a. **self-VERIFY₀** — `python tools/lint.py timeline <slug>` → confirm `SourceIndexed … → path ✅`. After ≤ 2 self-attempts on the same cause, either PASS or force handoff.

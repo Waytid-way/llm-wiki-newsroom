@@ -152,6 +152,8 @@ In either mechanism, the 4 principles in § Change Procedure (one author · revi
 2. **Editor-in-Chief dead path** — the Editor-in-Chief normally runs as the main thread, where role frontmatter is never loaded as a restriction; its `disallowedTools` is declared for parity and for the sub-Agent case, but the operative rule is the X-list itself.
 3. **Name-blocking is not a seal** — `disallowedTools` blocks the named tool, not the capability (a role could still reach the same effect via Bash). The X-list prose remains the governing rule; the frontmatter is defense-in-depth, and for a **teammate** it is not enforced at all (the brief is the only channel — table above).
 
+**Deferred tools**: some tools — MCP tools (`mcp__*`) among them — are exposed to a role's context **by name only, with no schema**; calling one directly fails. Pre-load any deferred tool an instruction names via `ToolSearch("select:<name>[,<name>…]")` before calling it. A missing pre-load is not an error — it falls back silently to a substitute tool (Grep·Glob), so the violation never surfaces; an instruction that names a deferred tool must therefore specify the pre-load too, **on the read path of the role that reads it**.
+
 ## Adversarial Faction Authoring
 
 The only procedure that uses named teammates. Rationale: a single author drafting a genuinely contested topic tends to collapse one camp into the other's frame; two persistent authors, each steelmanning one camp from its own sources, keep the frames separate until a fresh synthesizer merges them.
