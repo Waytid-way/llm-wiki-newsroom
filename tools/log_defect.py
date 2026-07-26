@@ -5,10 +5,11 @@ The ingest entry point for the automatic defect-to-guideline improvement loop (t
 automatic channel of the SoT self-evolution workflow). At cycle close, the
 Editor-in-Chief loads that cycle's lint FAILs + Desk actionable defects in one batch,
 and records the accept/reject transitions of guideline edits into the same corpus. The
-corpus accumulates longitudinal recurrence rates locally; it is gitignored operator-local
-state (like `graph/_health-log.jsonl` and `_feedback-review.json`), so accumulated history
-and any operator notes stay out of the public mirror. `mine_failures.py` reads this corpus
-in aggregate.
+corpus accumulates longitudinal recurrence rates; unlike the review watermarks
+(`_feedback-review.json`, `_failure-review.json`) it is committed, so a fresh clone starts
+with the recurrence history rather than blind. That makes it public — keep the free-text
+fields (mechanism · rationale · note) technical English. `mine_failures.py` reads this
+corpus in aggregate.
 
 Why the ingest point is a single batch at the cycle gate rather than every lint run:
 self-VERIFY₀ + VERIFY₁ + regression repetition double-counts the same FAIL and inflates

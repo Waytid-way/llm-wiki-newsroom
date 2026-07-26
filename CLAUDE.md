@@ -60,7 +60,7 @@ The guideline layer improves through the same four-stage cycle as content — th
 | **VERIFY** | Copy Editor (lint) + Desk (qualitative) | Guideline Verification Ladder — lint meta → minimal-edit check → blind review → effect-measurement gate |
 | **ADAPT** | fix on defects | severity-ruled re-pass; 3rd same-cause FAIL escalates to the operator |
 
-SoT: workflow + acceptance rule = [`agents/editor-in-chief.md`](.claude/agents/editor-in-chief.md) (§ SoT Self-Evolution Workflow · § Guideline Verification Ladder) · measurement variants = [`operations/proposal-validation-runbook.md`](.claude/operations/proposal-validation-runbook.md) · authoring craft = [`skills/guideline-writing/`](.claude/skills/guideline-writing/SKILL.md). Standing artifacts: the operator-local defect corpus (written by `tools/log_defect.py`, gitignored) · transition records (the accept/reject ledger) · `.claude/memory/` rejected directions. **Adoption always passes the operator gate** — the loop proposes and measures; it never self-adopts.
+SoT: workflow + acceptance rule = [`agents/editor-in-chief.md`](.claude/agents/editor-in-chief.md) (§ SoT Self-Evolution Workflow · § Guideline Verification Ladder) · measurement variants = [`operations/proposal-validation-runbook.md`](.claude/operations/proposal-validation-runbook.md) · authoring craft = [`skills/guideline-writing/`](.claude/skills/guideline-writing/SKILL.md). Standing artifacts: the defect corpus (written by `tools/log_defect.py`, committed) · transition records (the accept/reject ledger) · `.claude/memory/` rejected directions. **Adoption always passes the operator gate** — the loop proposes and measures; it never self-adopts.
 
 ---
 

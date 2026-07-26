@@ -41,7 +41,12 @@ When invoking via the PowerShell tool, both backslashes and forward slashes are 
 
 ## Hook Execution Environment (Windows)
 
-[`.claude/hooks/`](../hooks/) are bash scripts. The `command` for the `PreToolUse`/`PostToolUse` hooks in [`.claude/settings.json`](../settings.json) is registered in the form `bash .claude/hooks/<name>.sh` — **the `bash` prefix is required**. A Windows shell cannot execute a bare `.sh` path directly, so without the prefix that hook silently becomes a no-op, weakening guards and advisories to the level of a natural-language request. `python tools/lint.py meta` checks that a hook command running a `.sh` starts with `bash`.
+[`.claude/hooks/`](../hooks/) are bash scripts. The `command` for the `PreToolUse`/`PostToolUse` hooks in [`.claude/settings.json`](../settings.json) is registered in the form `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/<name>.sh"` — **both the `bash` prefix and a cwd-independent path are required**. Drop either one and that hook silently becomes a no-op, weakening guards and advisories to the level of a natural-language request.
+
+- **`bash` prefix** — a Windows shell cannot execute a bare `.sh` path directly.
+- **cwd-independent path** — a hook inherits the session's working directory, not the project root, so a relative path dies with `exit 127` the moment the session moves out of the root. That failure is shown to the user but never enters Claude's context (see **Output-channel convention** below), so the session goes on assuming the guards are live.
+
+`$CLAUDE_PROJECT_DIR` is the canonical anchor; `${CLAUDE_PROJECT_DIR}` and absolute paths are also accepted. The PowerShell spelling `$env:CLAUDE_PROJECT_DIR` is **rejected** — every registered hook runs under bash (no `shell` key is set anywhere), and bash expands `$env` to nothing, producing the same `exit 127`. `python tools/lint.py meta` checks both conditions.
 
 In environments where the hooks are not registered (no `hooks` key in `settings.json`, or a different path), the guards are silent too, so the configuration must be checked. No separate pre-install of WSL or Git Bash is required — the Bash tool itself already depends on that environment, so this project imposes no additional requirement.
 

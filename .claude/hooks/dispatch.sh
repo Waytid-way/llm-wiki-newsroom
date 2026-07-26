@@ -8,8 +8,8 @@
 # into one spawn and one payload.
 #
 # Activation: registered in .claude/settings.json —
-#   PreToolUse  Write|Edit → `bash .claude/hooks/dispatch.sh pre`
-#   PostToolUse Write|Edit → `bash .claude/hooks/dispatch.sh post`
+#   PreToolUse  Write|Edit → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/dispatch.sh" pre`
+#   PostToolUse Write|Edit → `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/dispatch.sh" post`
 
 set -uo pipefail
 

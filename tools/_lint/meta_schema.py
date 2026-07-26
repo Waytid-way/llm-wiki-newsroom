@@ -554,14 +554,54 @@ def _check_flat_lint_paths() -> list[str]:
     return violations
 
 
+# Path forms that resolve the same from any working directory. Registered hooks
+# all run under bash (no `shell` key anywhere), and bash expands both spellings.
+# The PowerShell-only `$env:CLAUDE_PROJECT_DIR` is deliberately absent — bash
+# expands `$env` to nothing, leaving `:CLAUDE_PROJECT_DIR/...`, which dies with
+# exit 127 exactly like the relative form this gate exists to catch. Widen the
+# set only alongside a hook that declares `shell`.
+_ANCHORED_PREFIXES = (
+    "$CLAUDE_PROJECT_DIR",
+    "${CLAUDE_PROJECT_DIR}",
+)
+_ABS_PATH_RE = re.compile(r"^[A-Za-z]:[\\/]")
+
+
+def _hook_script_token(cmd: str) -> str:
+    """Return the `.sh` argument of a hook command, quotes stripped.
+
+    Whitespace split — hook script paths in this repo contain no spaces. A
+    quoted path with spaces would need shlex.
+    """
+    token = next((t for t in cmd.split() if ".sh" in t), "")
+    return token.strip("\"'")
+
+
+def _is_cwd_independent(script: str) -> bool:
+    """True when the path resolves the same from any working directory."""
+    return (
+        script.startswith(_ANCHORED_PREFIXES)
+        or script.startswith("/")
+        or bool(_ABS_PATH_RE.match(script))
+    )
+
+
 def _check_hook_bash_prefix() -> list[str]:
     """Verify every settings(.local).json hook command that runs a `.sh`
-    script is invoked through a leading `bash` token.
+    script leads with `bash` and anchors the path to `$CLAUDE_PROJECT_DIR`.
+
+    Two ways a registered hook dies without the failure reaching Claude:
 
     Windows shells cannot execute a bare `.sh` path, so a hook registered as
     `.claude/hooks/foo.sh` (without the `bash ` prefix) silently no-ops — the
-    guard/advisory never fires and the failure is invisible. Requiring the
-    prefix keeps hooks portable across the project's shells.
+    guard/advisory never fires. Requiring the prefix keeps hooks portable
+    across the project's shells.
+
+    Hooks inherit the session's working directory, not the project root, so a
+    cwd-relative path resolves only while the session sits at the root. One
+    `cd` into a subdirectory and every hook exits 127 — surfaced to the user,
+    but never to Claude, who goes on assuming the guards are live. Anchoring to
+    `$CLAUDE_PROJECT_DIR` makes the path cwd-independent.
 
     Returns one violation string per offending command, plus a parse-error
     line if a settings file exists but cannot be read as JSON.
@@ -596,6 +636,15 @@ def _check_hook_bash_prefix() -> list[str]:
                             f"{rel}: {event}/{matcher} command `{cmd}` runs a "
                             f".sh script without leading `bash` — bare .sh "
                             f"silently no-ops on Windows shells."
+                        )
+                    script = _hook_script_token(cmd)
+                    if not _is_cwd_independent(script):
+                        violations.append(
+                            f"{rel}: {event}/{matcher} command `{cmd}` resolves "
+                            f"`{script}` against the session cwd — hooks inherit "
+                            f"it, so this exits 127 outside the repo root. "
+                            f'Anchor it: bash "$CLAUDE_PROJECT_DIR/.claude/'
+                            f'hooks/<name>.sh".'
                         )
     return violations
 
@@ -1187,20 +1236,26 @@ def run() -> int:
     else:
         print("OK - agent X-list <-> disallowedTools parity holds")
 
-    # HOOK BASH-PREFIX pass — settings.json hook `.sh` commands must lead with `bash`.
+    # HOOK LAUNCH pass — settings.json hook `.sh` commands must lead with
+    # `bash` and anchor the path to $CLAUDE_PROJECT_DIR.
     hook_prefix_issues = _check_hook_bash_prefix()
     if hook_prefix_issues:
-        print(f"\n[Hook bash-prefix violations: {len(hook_prefix_issues)}]")
+        print(f"\n[Hook launch violations: {len(hook_prefix_issues)}]")
         for v in hook_prefix_issues:
             print(v)
         print(
             "Rule: settings(.local).json hook commands that run a .sh script "
-            "must lead with `bash` (e.g. `bash .claude/hooks/foo.sh`). A bare "
-            ".sh path silently no-ops on Windows shells. "
+            'must lead with `bash` AND anchor the path — `bash '
+            '"$CLAUDE_PROJECT_DIR/.claude/hooks/foo.sh"`. A bare .sh path '
+            "silently no-ops on Windows shells; a cwd-relative path exits 127 "
+            "outside the repo root, because hooks inherit the session cwd. "
             "See .claude/policies/platform.md \"Hook execution environment\"."
         )
     else:
-        print("OK - settings.json .sh hook commands all lead with `bash`")
+        print(
+            "OK - settings.json .sh hook commands lead with `bash` and "
+            "anchor to $CLAUDE_PROJECT_DIR"
+        )
 
     # HOOK ADVISORY CHANNEL pass — non-blocking advisories must use additionalContext.
     hook_channel_issues = _check_hook_advisory_channel()
