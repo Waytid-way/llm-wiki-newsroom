@@ -153,11 +153,21 @@ def _paragraph_count(text: str) -> int:
 # set (and Korean date masking) fires only under WIKI_LANG=ko (korean_mode()).
 _DATE_YMD_RE = re.compile(r"\b\d{4}(?:[-./]\d{1,2}(?:[-./]\d{1,2})?)?\b")
 _DATE_KO_RE = re.compile(r"\d{4}\s*년(?:\s*\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?)?")
+# A unit needs a lookahead wherever `\b` does not already supply one, or the token
+# boundary lands mid-phrase and R1 counts a figure the body never states: `50%+1`
+# yields a bare `50%`, and in Korean `2분기` yields `2분`. The word units are closed
+# by `\b`; `%` and `분` are not, so those two carry explicit lookaheads below.
+# `대` is dropped from the Korean roster rather than bounded — "N대 <collective noun>"
+# (`5대 은행`) dominates real usage, so any boundary still mis-slices it; a genuinely
+# repeated `N대` figure falls to the desk, which R1 being advisory makes affordable.
 _NUM_UNIT_EN_RE = re.compile(
-    r"\d+(?:[,.]\d+)*\s*(?:%|(?:GB|TB|PB|GW|MW|million|billion|trillion|percent|points|tokens|parameters|users|models|employees|downloads)\b)"
+    r"\d+(?:[,.]\d+)*\s*(?:%(?![+\d])|(?:GB|TB|PB|GW|MW|million|billion|trillion|percent|points|tokens|parameters|users|models|employees|downloads)\b)"
 )
 _NUM_UNIT_KO_RE = re.compile(
-    r"\d+(?:[,.]\d+)*\s*(?:조|억|천만|백만|만|%|GB|TB|PB|건|대|명|장|배|개월|개|호|층|년|번째|주|시간|분)"
+    r"\d+(?:[,.]\d+)*\s*조\s*\d+(?:[,.]\d+)*\s*억"          # compound amount as one token
+    r"|\d+(?:[,.]\d+)*\s*분(?![가-힣])"                      # blocks `분기`·`분야` mis-splits
+    r"|\d+(?:[,.]\d+)*\s*%(?![+\d])"                         # blocks the `50%+1` phrase
+    r"|\d+(?:[,.]\d+)*\s*(?:조|억|천만|백만|만|GB|TB|PB|건|명|장|배|개월|개|호|층|년|번째|주|시간)"
 )
 
 def _r1_hot_tokens(content: str) -> list[tuple[str, int]]:

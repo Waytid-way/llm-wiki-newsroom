@@ -216,3 +216,42 @@ def test_valid_link_target_set_has_one_owner(monkeypatch):
     sentinel = {"__ONLY_FROM_THE_SHARED_HELPER__": _P("x.md")}
     monkeypatch.setattr(link_candidates, "wiki_page_paths", lambda: sentinel)
     assert link_candidates._index_pages() == sentinel
+
+
+def test_r1_english_token_boundary():
+    """R1 counts a numeric token only where the body actually says it.
+
+    The word units are closed by `\\b`, but `%` was not: the phrase `50%+1 rule`
+    yielded a bare `50%` token, so one phrase repeated three times read as a hot
+    figure. A percentage followed by a digit or `+` is part of a longer token,
+    not a standalone figure.
+    """
+    from _lint.overview import _r1_hot_tokens
+
+    def toks(t):
+        return dict(_r1_hot_tokens(t))
+
+    assert toks("The 50%+1 rule. Under the 50%+1 rule. Debating the 50%+1 rule.") == {}
+    # genuine repetition still counts — trailing punctuation and prose both
+    assert toks("Share of 94%. About 94% now. Reaching 94%.") == {"94%": 3}
+    assert toks("7 billion params. 7 billion again. 7 billion more.") == {"7 billion": 3}
+
+
+def test_r1_korean_token_boundary(monkeypatch):
+    """The same boundary rule under WIKI_LANG=ko — a counter that swallows the
+    following syllable invents tokens: `2분기`→`2분`, `2조 4,585억`→`2조`,
+    `5대 시중은행`→`5대`. Particles (`94%에`) must still count, so the block is
+    scoped to the counter, not to any trailing Hangul.
+    """
+    import _lint.overview as O
+
+    monkeypatch.setattr(O, "korean_mode", lambda: True)
+
+    def toks(t):
+        return dict(O._r1_hot_tokens(t))
+
+    assert toks("2분기 실적. 2분기 매출. 2분기 이익.") == {}
+    assert toks("2조 4,585억 원. 2조 2,254억 원. 2조 6,381억 원.") == {}
+    assert toks("50%+1 룰이다. 50%+1 룰 적용. 50%+1 룰 논의.") == {}
+    assert toks("점유율 94%. 94% 수준. 94%에 달한다.") == {"94%": 3}
+    assert toks("9시간 55분. 55분 중단. 55분 지연.") == {"55분": 3}

@@ -33,8 +33,10 @@ the operator sees at a glance which gaps are auto-fillable vs. which need
 human / theme-management / derivation attention. JSON mode for programmatic
 consumers (wiki-discover --gaps, wiki-news --gap --batch).
 
-Exit code 0 if all tracks empty, 1 otherwise. Same convention as the rest
-of the lint suite.
+Exit code 0 if the backlog is empty, 1 otherwise — the standing rankings
+(`NON_BACKLOG_BUCKETS`) sit outside both the total and the exit code, so a state
+where only the bridge top-N remains exits 0. Same convention as the rest of the
+lint suite.
 """
 from __future__ import annotations
 
@@ -96,7 +98,21 @@ TIMELINE_MIN_SECTION_EVENTS = 18     # year (20YY) mentions ≥ N inside the hub
 # existing timelines were split off from a hub that carried this section. No cluster
 # allowlist needed (reads the hub's own structure, so it's robust to reorg).
 TIMELINE_SECTION_RE = re.compile(r"^##[^#\n]*(Timeline|시간축|연대기|타임라인)", re.MULTILINE)
+# bridge is a standing top-N ranking, not a queue: work one and the next candidate
+# takes its slot, so summing it into the total lets a constant bury the real backlog.
+# Every other bucket is a threshold predicate that can be driven to zero, so it stays
+# in the total — including sparse-cluster, which `gap-detection-rollout.md` routes to
+# the Track A auto-enrich channel.
+NON_BACKLOG_BUCKETS = {"bridge"}
+# Bridge slice trail coverage reads. Fixed, so the backlog total and the exit code
+# do not move with the `--top` display cap.
+TRAIL_BRIDGE_TOP = 10
 _YEAR_RE = re.compile(r"20\d{2}")
+
+
+def backlog_count(counts: dict[str, int]) -> int:
+    """Gaps awaiting work — the standing-ranking buckets removed. `backlog_total`'s contract."""
+    return sum(n for k, n in counts.items() if k not in NON_BACKLOG_BUCKETS)
 
 
 def _timeline_section_events(node_id: str) -> int:
@@ -573,15 +589,20 @@ def run(*, json_out: bool = False,
     if _want("synthesis") and themes_data:
         track_d["synthesis"] = detect_synthesis_coverage(themes_data)
     if _want("trail"):
+        # Detection must not move with the display cap: `--top` sizes what the
+        # operator sees, and trail is the only bucket that reads the bridge
+        # ranking as input, so without a fixed slice `--top 3` would shrink the
+        # backlog — and the exit code with it — on an unchanged wiki.
         bridge_rows = track_b.get("bridge")
-        if bridge_rows is None:
-            bridge_rows = detect_bridge_nodes(top=top or 10)
-        track_d["trail"] = detect_trail_coverage(bridge_rows)
+        if bridge_rows is None or len(bridge_rows) != TRAIL_BRIDGE_TOP:
+            bridge_rows = detect_bridge_nodes(top=TRAIL_BRIDGE_TOP)
+        track_d["trail"] = detect_trail_coverage(bridge_rows[:TRAIL_BRIDGE_TOP])
     if _want("timeline"):
         track_d["timeline"] = detect_timeline_coverage(hub_fm)
 
     counts = {k: len(v) for k, v in {**track_a, **track_b, **track_c, **track_d}.items()}
-    total = sum(counts.values())
+    total = backlog_count(counts)
+    ranking = sum(counts.values()) - total
 
     if json_out:
         print(json.dumps({
@@ -598,6 +619,7 @@ def run(*, json_out: bool = False,
                 "timeline.min_section_events": TIMELINE_MIN_SECTION_EVENTS,
             },
             "counts": counts,
+            "backlog_total": total,
             "track_a": track_a,
             "track_b": track_b,
             "track_c": track_c,
@@ -608,7 +630,8 @@ def run(*, json_out: bool = False,
     # Human-readable output — split by track so the operator sees auto-fillable
     # vs. decision-required gaps at a glance.
     cap = top or 8
-    print(f"Gap Inventory — {total} candidates across {len(counts)} buckets")
+    print(f"Gap Inventory — backlog {total} · standing ranking {ranking} "
+          f"({'·'.join(sorted(NON_BACKLOG_BUCKETS))} — outside the total) · {len(counts)} buckets")
     print()
     if track_a:
         print("─── Track A — auto-backfill targets (wiki-news --gap [...] --batch) ───")
@@ -686,6 +709,6 @@ def run(*, json_out: bool = False,
         print()
 
     if total == 0:
-        print("All gap buckets empty — no actionable candidates.")
+        print("Backlog buckets empty — no gaps awaiting work (standing rankings sit outside the total).")
         return 0
     return 1

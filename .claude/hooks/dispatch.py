@@ -158,7 +158,8 @@ Guideline Verification Ladder required just before commit
      classification per hunk + gdl.* defects. Severity rule: critical/high fix
      now + re-pass; medium/low carry to the corpus (log_defect batch)
   4. Effect-measurement gate — substantive ∧ measurement-obligated type →
-     an accept transition must exist before commit (runbook 3 variants)
+     an accept transition must exist before commit; otherwise revert the edit
+     and measure (temporary isolation — re-applied on acceptance; 3 variants)
 
 Deliberation narrative moves to log.md; the body keeps operative rules only.
 

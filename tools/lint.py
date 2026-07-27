@@ -30,7 +30,8 @@ Organized as ten groups mapped onto the wiki's content taxonomy:
                   backlog is triaged; the existing per-type freshness/drift/anchor
                   checks (orthogonal: metadata-hygiene·set-change·semantic) stay.
 
-  all           — run every pass/fail group above, then suggestions (informational).
+  all           — run every pass/fail group above, then the INFORMATIONAL subs
+                  (graph gaps · hub suggestions/promotion/demotion · staleness).
 
 Usage:
   python tools/lint.py                              # all groups + suggestions (default)
@@ -38,6 +39,7 @@ Usage:
   python tools/lint.py graph                        # every subcommand under graph
   python tools/lint.py graph structure              # single subcommand
   python tools/lint.py graph orphans --fix          # subcommand with --fix
+  python tools/lint.py graph gaps                   # gap inventory (informational in `all`; backlog only)
   python tools/lint.py graph drift                  # warm vs cold partition quality (opt-in; expensive)
   python tools/lint.py hub                          # speakers + suggestions + schema + voice + body + timeline
   python tools/lint.py hub speakers --min-quotes 3 --min-sources 3
@@ -215,16 +217,13 @@ ALL_ORDER = [
     ("trail", "_target"),
     ("timeline", "_target"),
 ]
-INFORMATIONAL = [("hub", "suggestions"), ("hub", "promotion"), ("hub", "demotion"), ("staleness", "_target")]
+INFORMATIONAL = [("graph", "gaps"), ("hub", "suggestions"), ("hub", "promotion"),
+                 ("hub", "demotion"), ("staleness", "_target")]
 
 # Subcommands skipped during group runs (and `all`) because they re-run an
-# expensive computation already implicit in the build pipeline or are
-# information-only triggers for a downstream operator decision. Opt-in
-# only: `python tools/lint.py graph drift` / `python tools/lint.py graph gaps`.
-# `gaps` runs betweenness sampling for bridge and reads every hub MD frontmatter;
-# `wiki-discover --gaps` / `wiki-news --gap` are the operator-facing entry
-# points so `lint all` would just re-compute the same metrics for no benefit.
-OPT_IN = {("graph", "drift"), ("graph", "gaps")}
+# expensive computation already implicit in the build pipeline. Opt-in only:
+# `python tools/lint.py graph drift`, which re-partitions the graph cold.
+OPT_IN = {("graph", "drift")}
 
 # Group/sub pairs whose `--fix` action is gated to explicit invocation
 # only — when reached through the `all --fix` path, the diagnosis still
@@ -393,7 +392,7 @@ def _run_group(group: str, args: argparse.Namespace) -> int:
     overall = 0
     original_fix = args.fix
     for sub in GROUPS[group]:
-        # hub suggestions is informational — skip during group run, surface at end.
+        # INFORMATIONAL subs skip the gating loop and surface after the summary.
         if (group, sub) in INFORMATIONAL:
             continue
         if (group, sub) in OPT_IN:
@@ -429,7 +428,7 @@ def _run_group(group: str, args: argparse.Namespace) -> int:
         print("   Overall: CHAIN-REQUIRED — exit code 2")
         return 2
 
-    # Surface informational subs under this group (currently only hub suggestions).
+    # Surface this group's informational subs — reported, never gating.
     for g, sub in INFORMATIONAL:
         if g != group:
             continue

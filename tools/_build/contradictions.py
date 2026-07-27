@@ -111,14 +111,22 @@ _CLAIMS_SECTION_RE = re.compile(
 
 
 
-def _claim_id(source: str, claim: str) -> str:
-    """Stable 8-char SHA1 hex of (source + claim) — unique id for a claim.
+def _claim_id(claim: str) -> str:
+    """Stable 8-char SHA1 hex of the claim text — unique id for a claim.
 
-    Deterministic: same (source, claim) pair always yields the same id.
-    Changes when claim text is edited — downstream references
-    (`_contradictions_themes.json`) must be updated when a claim is rewritten.
+    Keyed on the claim text alone, never on the source path: renaming a source
+    file leaves every claim inside it unchanged, so a rename must not strand the
+    theme memberships (`_contradictions_themes.json`) that reference those claims.
+
+    Editing the claim text still changes the id, and that orphaning is deliberate
+    — a judgment was made about that wording, so a rewrite must be re-judged
+    rather than silently inherited.
+
+    Two sources carrying byte-identical claim text collapse to one id, which
+    `_print_summary` surfaces loudly: theme coverage compares `source_count`
+    against the *unique* id set.
     """
-    return hashlib.sha1(f"{source}::{claim}".encode("utf-8")).hexdigest()[:8]
+    return hashlib.sha1(claim.encode("utf-8")).hexdigest()[:8]
 
 
 _CONTRADICTS_LINE_RE = re.compile(
@@ -156,7 +164,7 @@ def _collect() -> list[dict]:
             if len(claim_text) < 5 or claim_text.strip().lower().rstrip(".") in SKIP_MARKERS:
                 continue
             items.append({
-                "id": _claim_id(rel, claim_text),
+                "id": _claim_id(claim_text),
                 "source": rel,
                 "claim": claim_text,
                 "status": "open",
@@ -332,6 +340,14 @@ def _write_json(items: list[dict]) -> Path:
 
 def _print_summary(items: list[dict]) -> None:
     counts = Counter(it["type"] for it in items)
+    collided = [i for i, n in Counter(it["id"] for it in items).items() if n > 1]
+    if collided:
+        print(f"  ⚠️ claim id collision: {len(collided)} id(s) shared by byte-identical "
+              f"claim text in different sources: {collided[:5]}\n"
+              "     `lint contradiction theme` FAILs on source_count because coverage "
+              "counts unique ids, not records.\n"
+              "     Fix by rewording the less central claim — that re-keys it, so move "
+              "its theme claim_ids entry to the new id in the same edit.")
     print(f"Contradictions: {len(items)} total -> _contradictions.json")
     for t in TYPE_ORDER:
         print(f"  {t:<11s} {counts.get(t, 0):>4d}")

@@ -198,7 +198,7 @@ Guideline-authoring voice and plan-bloat control are craft, not policy — they 
 ## Human Reviewer Gate
 
 In the following situations, do not proceed automatically:
-- A 3rd ADAPT FAIL for the same reason
+- A 3rd ADAPT FAIL for the same reason · a Guideline Verification Ladder that has not converged after 3 rotations (regardless of cause)
 - A new cluster slug (`graph/cluster_labels.json`) / a new contradiction theme slug
 - A new entity (person/company/SW-solution) or concept stub (only past the citation thresholds — `.claude/policies/naming.md` entity/concept stub thresholds)
 - Publishing L2-4 root content

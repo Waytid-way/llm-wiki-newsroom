@@ -250,9 +250,16 @@ def _check_slash_commands(text: str) -> list[str]:
 # disk). The *forward* direction — every disk file is enumerated in its folder's
 # index — was previously unchecked, so a new file under .claude/operations/ or
 # .claude/policies/ could land without an entry in the CLAUDE.md "Instruction
-# Locations" or the folder README and drift silently. Scope is limited to
-# operations + policies, the two folders where this drift occurs in practice.
-# agents/commands/layers are intentionally out of scope.
+# Locations" or the folder README and drift silently. Scope is exactly
+# `ROSTER_FOLDERS` below — the folders this check has been pointed at because
+# the drift was observed there. Every message the check emits derives its folder
+# names from that tuple instead of restating them, so widening the scope cannot
+# leave a stale rule statement in front of the operator. The other `.claude/`
+# subfolders are out for three different reasons: agents/ and commands/ have not
+# drifted (every .md they gained was enumerated in the same commit); skills/ is
+# the same drift class but `_disk_roster` globs only top-level *.md and skills/
+# nests one level deeper, so this check cannot reach it — an open gap, not a
+# clean bill; hooks/ holds no *.md at all; memory/ is gitignored.
 #
 # Section header per folder in CLAUDE.md, e.g. "### `.claude/policies/` — ...".
 _CLAUDE_SECTION_RE_TMPL = r"^###\s+`\.claude/{folder}/`.*?(?=^###\s|\Z)"
@@ -266,6 +273,7 @@ _MD_BASENAME_RE = re.compile(r"`([\w.-]+\.md)`|\[([\w.-]+\.md)\]")
 ROSTER_FOLDERS = (
     ("operations", False),
     ("policies", True),
+    ("layers", True),
 )
 
 
@@ -307,8 +315,8 @@ def _claude_section_basenames(claude_text: str, folder: str) -> set[str] | None:
 
 
 def _check_roster_completeness(claude_text: str) -> list[str]:
-    """Verify every disk file under operations/ + policies/ is enumerated in
-    the CLAUDE.md "Instruction Locations" and (where present) the folder README index.
+    """Verify every disk file under each `ROSTER_FOLDERS` folder is enumerated in
+    the CLAUDE.md "Instruction Locations" and (where that folder has one) its README index.
 
     Reports one line per (file, missing-index) gap so the operator sees both
     the orphaned file and which list it fell out of.
@@ -1114,12 +1122,14 @@ def run() -> int:
         for m in missing_cmds:
             print(m)
     if unlisted_files:
-        print(f"\n[Unlisted roster files (operations + policies): {len(unlisted_files)}]")
+        scoped = ", ".join(f for f, _ in ROSTER_FOLDERS)
+        with_readme = ", ".join(f for f, has_readme in ROSTER_FOLDERS if has_readme)
+        print(f"\n[Unlisted roster files ({scoped}): {len(unlisted_files)}]")
         for u in unlisted_files:
             print(u)
         print(
-            "Rule: every .claude/operations/*.md and .claude/policies/*.md file "
-            "must be enumerated in the CLAUDE.md \"Instruction Locations\" and (policies) the "
+            f"Rule: every top-level *.md under .claude/{{{scoped}}}/ must be enumerated "
+            f"in the CLAUDE.md \"Instruction Locations\" and ({with_readme}) the "
             "folder README index. Add the missing entry."
         )
 
