@@ -255,3 +255,70 @@ def test_r1_korean_token_boundary(monkeypatch):
     assert toks("50%+1 룰이다. 50%+1 룰 적용. 50%+1 룰 논의.") == {}
     assert toks("점유율 94%. 94% 수준. 94%에 달한다.") == {"94%": 3}
     assert toks("9시간 55분. 55분 중단. 55분 지연.") == {"55분": 3}
+
+
+def _cit_checks():
+    """Load the scholarly-citation skill detectors the same way source.py does."""
+    import importlib.util
+
+    path = ROOT / ".claude" / "skills" / "scholarly-citation" / "checks.py"
+    spec = importlib.util.spec_from_file_location("cit_checks_test", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_g2_weasel_boundary_keeps_named_claimants():
+    """G2 recalibration regression — a denylist without a case boundary drops the very
+    names the guideline offers as correct examples (`Free Software Foundation` ends in
+    `foundation`). In English the discriminator is the final word's case: a named source
+    capitalizes it, a weasel does not.
+    """
+    w = _cit_checks()._is_weasel_head
+
+    for named in (
+        "Free Software Foundation", "Software Freedom Conservancy",
+        "Open Source Initiative", "Government Accountability Office",
+        "Electronic Frontier Foundation", "The Linux Foundation",
+        "AMD", "Ai2", "Pleias", "Bradley Kuhn",
+    ):
+        assert not w(named), f"named claimant dropped as weasel: {named!r}"
+
+    for weasel in (
+        "the government", "the industry", "the foundation", "the community",
+        "industry sources", "Government sources", "experts", "the media", "",
+    ):
+        assert w(weasel), f"weasel let through: {weasel!r}"
+
+
+def test_g2_accepts_plain_name_rejects_evasion_and_bloat():
+    """G2 measures whether the claimant is *named*, not whether it is linked (WP:ASF).
+    Plain text passes when the speaker has no page; it fails when a page does exist
+    (link evasion) or when content is pushed into the head slot.
+    """
+    cit = _cit_checks()
+    page_index = {"Meta": ("entities/Meta.md", "entity")}
+
+    def g2(line):
+        body = f"## Key Claims\n{line}\n\n## Connections\n"
+        return cit.evaluate_citation(
+            body, page_index=page_index, section_titles_fn=lambda rel: set()
+        )["g2"]
+
+    # plain-text name, no page → PASS and counted as plain
+    ok = g2("- [fact] Pleias — released a fully open multilingual dataset")
+    assert ok[0] is True and ok[4] == 1
+
+    # wikilink → PASS, not counted as plain
+    linked = g2("- [fact] [[Meta]] — released Llama under a custom licence")
+    assert linked[0] is True and linked[4] == 0
+
+    # plain text naming an existing page → link evasion → FAIL
+    assert g2("- [fact] Meta — released Llama under a custom licence")[0] is False
+
+    # content pushed into the head slot → FAIL
+    bloat = "x" * (cit.CLAIMANT_HEAD_MAX + 1)
+    assert g2(f"- [fact] {bloat} — said something")[0] is False
+
+    # anonymous subject → FAIL even in plain text
+    assert g2("- [fact] the industry — expects consolidation")[0] is False

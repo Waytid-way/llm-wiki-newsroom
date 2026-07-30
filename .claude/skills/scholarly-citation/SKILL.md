@@ -13,7 +13,7 @@ One claim, one line, one utterance. Each line of `## Key Claims` (Key Claims) ma
 
 ## Claimant attribution (cit.claimant-link · cit.claimant-valid · cit.speaker-link)
 
-Every claim is bound to who said it. A `[[claimant]]` wikilink right after the grade marker names the speaker; anonymous subjects ("the government"·"industry sources"; ko `정부는`·`업계에서는`) are forbidden (WP:ASF — "avoid stating opinions as facts"; attribute them to a named source). A blockquote carries a speaker-attribution wikilink (APA author-date principle — identify the cited author). The attribution target must exist as a real page.
+Every claim is bound to who said it. The slot right after the grade marker names the speaker — a `[[wikilink]]` when they have a page, their plain-text real name and role when they fall below the page-creation threshold. What WP:ASF requires is the named source; the wikilink is one means to it, so demanding a link from a speaker who cannot have a page only pushes the author to link some other entity. Anonymous or collective subjects ("the government"·"industry sources"; ko `정부는`·`업계에서는`) stay forbidden in either form ("avoid stating opinions as facts"; attribute them to a named source), as does naming in plain text a page that does exist. A blockquote carries a speaker-attribution wikilink (APA author-date principle — identify the cited author). The attribution target must exist as a real page.
 
 ## Citation typing (cit.cite-type · cit.cite-distribution · cit.cite-type-hub)
 

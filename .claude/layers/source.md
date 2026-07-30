@@ -22,7 +22,7 @@ last_updated: YYYY-MM-DD    # bump to today's date when the source MD is edited 
 2–4 sentence summary.
 
 ## Key Claims
-- [<grade>] [[claimant]] — content [[evidence-slug#section]]
+- [<grade>] <claimant> — content [[evidence-slug#section]]
   # grade: [fact] primary · [analysis] secondary · [forecast] tertiary
 
 ## Key Quotes
@@ -37,7 +37,7 @@ last_updated: YYYY-MM-DD    # bump to today's date when the source MD is edited 
 
 Detailed classification criteria and decision trees are in the [`## Authoring`](#authoring) section below:
 
-- **`## Key Claims`** (Key Claims) line = the atomic unit `[<grade>] [[claimant]] — content`. The grade marker plus an entity wikilink are mandatory. Even one missing line makes lint FAIL.
+- **`## Key Claims`** (Key Claims) line = the atomic unit `[<grade>] <claimant> — content`. The grade marker plus a named claimant are mandatory (`[[entity]]` when the speaker has a page, otherwise their plain-text real name). Even one missing line makes lint FAIL.
 - **`## Connections`** (Connections) line = `<type>: [[Hub]] — description`. A missing prefix makes lint FAIL. The `contradicts:` line is the **single SoT of the theme contradiction DB** (`tools/_build/contradictions.py` extracts it at the line level).
 - The prefix directly determines the `_graph.json` edge relation via `tools/_build/graph.py` line-level parsing (overriding the section heuristic).
 
@@ -82,7 +82,7 @@ This guide applies at step 4 (authoring the source page) of the 12-step procedur
 1. **Read the raw document end to end** — identify key claims, quotations, figures, and the entities/concepts mentioned.
 2. **Write the frontmatter** — fill in title · type · tags · published · scraped · source_file · source_url (field meanings are in the schema comments above). If `tags` is empty, the source lint T1 hard gate blocks it (consumed as the node badge in the graph browser); candidates are suggested from the `## Connections` hubs by `python tools/_ingest/suggest_tags.py --file wiki/sources/<slug>.md`. The URL SoT convention is in .claude/layers/source.md.
 3. **Write `## Summary`** — a 2–4 sentence English summary.
-4. **Write `## Key Claims` atomic units** — decompose the raw claims into atomic units of the form `[<grade>] [[claimant]] — content [optional anchor]`. The grade judgment, the claimant-absent fallback, and the anchor convention are in [Authoring Principles](#authoring-principles) and [Decision Trees](#decision-trees-making-ambiguous-cases-deterministic) below.
+4. **Write `## Key Claims` atomic units** — decompose the raw claims into atomic units of the form `[<grade>] <claimant> — content [optional anchor]` (the claimant is an `[[entity]]` or a plain-text real name). The grade judgment, claimant selection, and the anchor convention are in [Authoring Principles](#authoring-principles) and [Decision Trees](#decision-trees-making-ambiguous-cases-deterministic) below.
 5. **Write `## Key Quotes`** — a `> "quotation" — [[Speaker]]` blockquote. The Speaker is an entity wikilink. If the raw has a direct quotation from the speaker themselves, preserve it verbatim (do not replace it with a one-line summary) — a thin section here is the root cause of downstream themes and hubs hallucinating quotations. You may omit the section only when the raw genuinely has no direct quotations (analysis or forecast pieces).
 6. **Write `## Connections` citation type prefixes** — for each hub/source link, attach a `<prefix>: [[Hub]] — one-line description`, classified by citation type (`cites:` · `references:` · `contradicts:` · `defines:`). The classification criteria are in [Authoring Principles](#authoring-principles) and [Decision Trees](#decision-trees-making-ambiguous-cases-deterministic) below. `contradicts:` is the single SoT of the theme contradiction DB.
 
@@ -94,9 +94,10 @@ This section is the **application and examples for this wiki's sources** of the 
 
 - **Enforce atomicity**: one line = one claim. "A does X and B does Y" splits into two lines.
 - **State the grade**: every claim must carry a `[fact]`/`[analysis]`/`[forecast]` marker. Even one line without it makes lint FAIL.
-- **Mandatory claimant wikilink**: every claim must have at least one `[[claimant]]` entity wikilink. A plain-text subject ("the government", "the industry") is a weasel. Convert vague subjects like "the foundation" or "the community" into the nearest concrete entity (e.g., "OpenSourceInitiative", "Meta").
+- **Mandatory named claimant**: every claim names who said it — `[[claimant]]` when the speaker has a page, their plain-text real name when they fall below the [naming.md](../policies/naming.md) entity-addition threshold. Never link a page that does not exist, and never reach for a nearby entity to fill the slot (misattribution is the worse defect).
+- **Anonymous subjects stay barred**: "the government", "the industry", "the foundation", "the community" fail in either form — resolve them to the concrete speaker. Plain text naming a page that *does* exist fails too: link it.
 - **Claimant = the speaking subject** (≠ the analysis target): the claimant is the subject who *said, analyzed, or announced* the claim. If the content is "<X> analyzed/announced", the claimant is `[[X]]`, and the entity that is the *target* of analysis goes under `## Connections references:` (beware of misattributing the target as the claimant in research and commentary sources).
-- **No concept-hub fallback when the speaking entity exists**: if the speaker X explicitly stated as "according to X", "X's report", or "X announced" has an entity page, the claimant is `[[X]]` — do not fall back to an about-subject concept hub. The concept fallback (priority ③ below) applies only when the speaker has no entity (anonymous, an uncreated person, or a publication with no entity).
+- **The stated speaker wins**: when the raw says "according to X", "X's report", or "X announced", the claimant is X — never the about-subject concept hub the source mostly discusses. Link X if it has a page, otherwise write X in plain text.
 - **Content is a one-liner with a verb**: do not just list noun phrases like "405B-parameter model" or "AI acceleration". Make it a complete statement that includes a verb.
 - **Evidence anchor recommended**: when a `[fact]` or `[analysis]` cites an external source, `[[<source-slug>#section]]` is recommended. For a self-source (this source's own body), omit the anchor.
 
@@ -105,7 +106,9 @@ Examples:
 - ✅ `[analysis] [[OpenSourceInitiative]] — argues that withheld training data prevents Llama from meeting the Open Source AI Definition`
 - ✅ `[forecast] [[Mozilla]] — expects open-weight model adoption to keep accelerating among downstream developers`
 - ❌ `Meta released Llama 3.1 under a community license` — missing grade marker
-- ❌ `[fact] the foundation announced a new license` — missing claimant wikilink (weasel)
+- ✅ `[fact] Pleias — released a fully open multilingual training dataset of over 2 trillion permissibly licensed tokens` — plain-text claimant, below the page-creation threshold
+- ❌ `[fact] the foundation announced a new license` — anonymous subject (weasel); name the speaker
+- ❌ `[analysis] Meta — argues its licence terms are compatible with open source` — plain text for a speaker who *has* a page; link it as `[[Meta]]`
 - ❌ `[analysis] [[Meta]] — OSI analyzed whether Llama qualifies as open source` — the claimant must be the speaking subject (OSI), not the analysis target (Meta)
 
 #### Citation type (`## Connections`)
@@ -190,14 +193,18 @@ judgment ambiguous                                                              
 - `[analysis]` signals — "analyze · interpret · assess · diagnose · explain · point out"
 - everything else → `[analysis]`
 
-#### Claimant wikilink absent — fallback (priority)
+#### Claimant selection (priority)
 
 ```
-1. entity that appears in the raw body + has a wiki page    → use
-2. the first entity wikilink in the source's `## Connections`        → use
-3. the source's dominant concept hub (only when the speaker entity is absent)  → use
-4. none of the above                                        → confidence=Low (skip)
+1. the speaker has a wiki page                       → [[entity]]
+2. the speaker is named in the raw but has no page   → plain-text real name + role
+3. the speaker cannot be identified from the raw     → confidence=Low (skip)
 ```
+
+Never substitute a *different* entity for a speaker who has no page — not the first
+link in `## Connections`, not the source's dominant concept hub. Both were fallback
+steps here until 2026-07-30 and were the direct cause of misattributed claims; step 2
+is the answer they were standing in for.
 
 `Low` confidence is queued for main-thread review and excluded from batch auto-commit.
 
@@ -268,10 +275,10 @@ This Rubric pairs with `.claude/layers/source.md`'s definition of "how to write"
 
 **Two-tier residual-fail policy** — two constants in `tools/_lint/source.py` separate permanent exemption from natural accumulation margin:
 
-- **`INTRINSICALLY_UNFIXABLE_SOURCES`** (permanent whitelist): the area of permanently accepted plain text under the `feedback_no_single_source_stub` policy — fundamentally one-off claimants (failing the stub threshold of ≥3 mentions + ≥2 clusters), generic-noun subjects (`construction industry`, `government`), or self-source repetition (multi-cluster 0). A whitelisted source is excluded from the ACCEPTABLE_FAILS count and surfaces only as a `[Whitelist] N permanent residual` advisory. When listing one, a policy-reason comment (one-off claim source · generic-noun form · no multi-cluster appearance) is mandatory. SoT-unified — the same threshold from `.claude/policies/naming.md` "entity-addition threshold" and the memory `feedback_no_single_source_stub` governs both areas (entity-stub creation · source-schema claimant) together.
+- **`INTRINSICALLY_UNFIXABLE_SOURCES`** (permanent whitelist): reserved for lines whose speaker cannot be named at all — a generic-noun subject (`construction industry`, `government`) or a multi-actor enumeration. Falling below the stub threshold does **not** qualify: that speaker's plain-text name is a normal G2 pass. A whitelisted source is excluded from the ACCEPTABLE_FAILS count and surfaces only as a `[Whitelist] N permanent residual` advisory. When listing one, a policy-reason comment naming which unnameable form applies is mandatory.
 - **`ACCEPTABLE_FAILS = 10`** (natural accumulation margin): the regression detector for the accumulated fails of new ingests outside the whitelist. Exceeding the threshold is a hard fail. The whitelist split restores the original intent (a temporary margin), blocking regression masking. Raise the constant only after stating a policy-change reason.
 
-**etc. whitelist operation**: when a residual one-off claimant accumulates ≥3 mentions + ≥2 clusters in future ingests → create the entity stub → restore the body wikilink → remove the source from the whitelist (G2/G4 PASS regresses back as the stub threshold is met). Monitoring the accumulation of one-off claimants.
+**etc. whitelist operation**: before adding a slug, empty the whitelist and measure that a real FAIL survives — an entry made to clear the threshold disables the check instead of recording a fact. When a whitelisted subject later resolves into a nameable speaker who accumulates ≥3 mentions + ≥2 clusters → create the entity stub → link it in the body → drop the whitelist entry.
 
 **Evaluation execution order**:
 1. Automated (A) criteria — run `python tools/lint.py source [<slug>]`, judge immediately from the output metrics.
@@ -300,7 +307,7 @@ When a cap is exceeded, a token recurs, or consistency is violated, an auxiliary
 - **✅ = PASS**, **⚠️ = FAIL**, **— = exempt** (e.g., A2 for a source with no raw quotations)
 - PASS condition per metric:
   - **G1**: `grade_marker = N/N` — among `## Key Claims` lines, those matching the grade-marker regex `^-\s*\[(fact|analysis|forecast)\]` (the English grade tokens `[fact]`/`[analysis]`/`[forecast]`) / all claim lines. N/N = 100% PASS; partial match FAILs.
-  - **G2**: `claimant_wikilink = N/N` — among `## Key Claims` lines, those with a `[[<entity>]]` wikilink right after the grade marker / all claim lines. N/N = 100% PASS.
+  - **G2**: `claimant_named = N/N` — among `## Key Claims` lines, those naming a claimant right after the grade marker / all claim lines. A `[[<entity>]]` wikilink counts, as does a plain-text name that is not anonymous, not over-long, and not the title of an existing page. N/N = 100% PASS.
   - **G3**: `atomic_violations = 0` — the automated heuristic matches only the Korean conjunctions `와`/`및` joining two `[[hub]]` links (dormant on English prose; the English "and"/`+ ` composite split is author-applied / Desk-reviewed, not lint-enforced). 0 = PASS.
   - **C1**: `prefix = N/N` — among `## Connections` lines, those matching the `^- (cites|references|contradicts|defines):` regex / all lines. N/N = 100% PASS.
   - **C2**: `ref_ratio = N%` — the share of `references:` prefixes among `## Connections` lines. ≤ 95% PASS (over 95% is an advisory). Exempt (`—`) if there are fewer than 5 lines.

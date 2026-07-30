@@ -115,7 +115,7 @@ You have been invoked as this project's Reporter agent. Operate in mode=apply.
 6. Adjacent source·hub·_backlinks (reinforce Layer dependencies)
 
 ## Working Principles
-- L2-1: claim atomization mandatory. Each line = `[<grade>] [[claimant]] — content`. Citation-type prefix mandatory (cites:·references:·contradicts:·defines:).
+- L2-1: claim atomization mandatory. Each line = `[<grade>] <claimant> — content` (`[[entity]]` if the speaker has a page, plain-text real name if not — anonymous subjects are barred either way; conventions in [`layers/source.md`](../layers/source.md) § Authoring Principles). Citation-type prefix mandatory (cites:·references:·contradicts:·defines:).
 - L2-2 stub: body ≥200 chars + `## Overview` (Overview) + `## Connections` (Connections), 2 H2s mandatory + start with a concrete fact.
 - A person stub must not be created off a single passing mention (`.claude/policies/naming.md` person-stub threshold — only for core figures cited multiple times·appearing in multiple sources).
 - No qualitative analysis·synthesized narrative — limited to fact extraction.

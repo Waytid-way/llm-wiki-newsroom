@@ -10,11 +10,11 @@
       "note": "Every line of ## Key Claims carries one of [fact]·[analysis]·[forecast]."
     },
     "cit.claimant-link": {
-      "name": "Claimant wikilink", "dimension": "Attribution", "judge": "A",
+      "name": "Claimant named", "dimension": "Attribution", "judge": "A",
       "algorithm": "evaluate_citation", "comparator": "==", "default_threshold": "claim_total",
       "legacy": {"source": "G2"},
       "source": "Wikipedia:ASF", "source_url": "https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Words_to_watch#Attribution",
-      "note": "A [[claimant]] wikilink right after the grade marker is mandatory — no plain-text subject."
+      "note": "The claimant right after the grade marker must be named: a [[wikilink]] when the speaker has a page, plain text with their role when below the page-creation threshold. Fails when the subject is absent, generic or anonymous, longer than a name (content pushed into the slot), or plain text naming a page that does exist (link evasion). Whether a short plain head is the speaker or the topic is not machine-decidable and stays with editorial review."
     },
     "cit.atomic": {
       "name": "Atomic enforcement (multi-hub juxtaposition)", "dimension": "Claim atomization", "judge": "A",

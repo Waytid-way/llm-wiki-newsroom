@@ -101,3 +101,22 @@ def test_review_window_includes_the_boundary_day():
     assert _review.in_window(None, "2026-07-20") is True           # undated: never hidden
     assert _review.in_window("", "2026-07-20") is True
     assert _review.in_window("2026-01-01", None) is True           # no watermark: all
+
+
+def test_relay_preamble_does_not_bypass_the_tag_filter():
+    """System-injected tags are matched as substrings, not prefixes. A relay or
+    notification arrives behind a preamble ("Another Claude session sent a message:"),
+    so a startswith filter lets it through and its text is mined as an operator
+    utterance — inflating CORRECTION hits and burying the real ones.
+    """
+    relay = (
+        "Another Claude session sent a message:\n"
+        "<teammate-message from='faction-a'>그게 아니야, 다시 해</teammate-message>"
+    )
+    assert mf.extract_user_text({"type": "user", "message": {"content": relay}}) is None
+    # bare tag (no preamble) stays excluded
+    bare = "<teammate-message from='faction-a'>hi</teammate-message>"
+    assert mf.extract_user_text({"type": "user", "message": {"content": bare}}) is None
+    # a genuine operator utterance is still kept
+    real = "그게 아니야, 다시 해"
+    assert mf.extract_user_text({"type": "user", "message": {"content": real}}) == real

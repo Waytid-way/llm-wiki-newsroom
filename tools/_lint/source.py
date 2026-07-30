@@ -2,7 +2,7 @@
 
 Phase 2(2026-05-02) introduced a 3-layer epistemics primitive on source
 pages — claim atomization (`## Key Claims` atomic units with grade marker
-`[fact]`/`[analysis]`/`[forecast]` + claimant wikilink), citation type prefix
+`[fact]`/`[analysis]`/`[forecast]` + a named claimant), citation type prefix
 (`## Connections` lines start with `cites:`/`references:`/`contradicts:`/`defines:`),
 and evidence grade (the marker itself). This module implements the 10
 automated criteria defined in `.claude/layers/source.md`.
@@ -123,24 +123,18 @@ def _build_page_index() -> dict[str, tuple[str, str]]:
 # mechanism.
 ACCEPTABLE_FAILS = 10
 
-# Permanent residual whitelist — single-cite claimants below stub threshold,
-# general nouns, or self-cluster repetition without multi-cluster spread.
-# Policy SoT: `.claude/policies/naming.md` "entity-addition threshold" + memory
-# `feedback_no_single_source_stub` (cross-policy: same threshold governs both
-# entity stub creation and source-schema claimant fixability).
-# Adding a slug here MUST cite the policy clause that justifies permanent
-# residual status (single-cite claim source · generic-noun form · no multi-cluster appearance).
-# Entries accumulate as the operated corpus does.
-INTRINSICALLY_UNFIXABLE_SOURCES: set[str] = {
-    # Bradley Kuhn / Software Freedom Conservancy — single-cite claim source, no
-    # multi-cluster appearance: 1 source ∩ 1 cluster across all four name variants
-    # ("Software Freedom Conservancy", "Bradley Kuhn", "Conservancy", "SFC"),
-    # so it fails the naming.md entity-addition threshold (≥3 sources ∩ ≥2 clusters).
-    # The claimant is carried as plain text rather than linked to a hub that does
-    # not exist. Reopen per layers/source.md § whitelist operation once the
-    # threshold is met: create the stub → restore the wikilink → drop this entry.
-    "case-against-osaid",
-}
+# Permanent residual whitelist. Eligibility is narrow: the speaker cannot be named
+# by *any* route — neither a wikilink (below the `.claude/policies/naming.md`
+# entity-addition threshold) nor plain text (a generic-noun subject or a multi-actor
+# enumeration, where the speaker cannot be identified at all). Being below the page
+# threshold is NOT sufficient on its own: since G2 measures naming rather than
+# linking, a plain-text real name is a normal pass.
+# Before adding a slug, empty the whitelist and measure that a real FAIL remains —
+# an entry made to clear the threshold disables the check instead of recording a fact.
+# 2026-07-30 recount: the sole entry (`case-against-osaid`) was justified by
+# "carried as plain text rather than linked", which is now a supported pass path, so
+# it lost eligibility and was removed. The set is empty by design, not by oversight.
+INTRINSICALLY_UNFIXABLE_SOURCES: set[str] = set()
 
 # Required Rubric criteria — any FAIL on these
 # keys causes a non-zero exit (subject to ACCEPTABLE_FAILS at corpus level).
@@ -263,7 +257,7 @@ def _print_per_file(result: dict) -> None:
     rel = result["rel"]
     s1_pass, s1_n, s1_total = result["s1"]
     g1_pass, g1_n, g1_total, g1_samples = result["g1"]
-    g2_pass, g2_n, g2_total, g2_samples = result["g2"]
+    g2_pass, g2_n, g2_total, g2_samples, _g2_plain = result["g2"]
     g3_pass, g3_violations = result["g3"]
     g4_pass, g4_n, g4_total, g4_samples = result["g4"]
     g5_pass, g5_violations = result["g5"]
@@ -355,8 +349,10 @@ def _print_corpus_summary(results: list[dict]) -> None:
     print(
         f"  G1 grade marker     PASS={g1_pass_n}/{total} ({100 * g1_pass_n // total}%)"
     )
+    g2_plain_n = sum(r["g2"][4] for r in results)
     print(
-        f"  G2 claimant link    PASS={g2_pass_n}/{total} ({100 * g2_pass_n // total}%)"
+        f"  G2 claimant named   PASS={g2_pass_n}/{total} ({100 * g2_pass_n // total}%)"
+        f"  [plain-text claimants: {g2_plain_n}]"
     )
     print(
         f"  G4 valid claimant   PASS={g4_pass_n}/{total} ({100 * g4_pass_n // total}%)"

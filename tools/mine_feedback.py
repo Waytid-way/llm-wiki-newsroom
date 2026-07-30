@@ -97,7 +97,6 @@ META_PREFIXES = (
     "<ide_opened_file>", "<ide_closed_file>", "<ide_selection>",
     "<local-command-stdout>", "<system-reminder>", "<command-name>",
     "<command-message>", "<command-args>", "Caveat:",
-    "<teammate-message",  # agent-team relay — not an operator utterance
     "Stop hook feedback:",  # hook-injected system message — not an operator utterance
 )
 META_EXACT = {"Tool loaded.", "[Request interrupted by user]", ""}
@@ -173,7 +172,10 @@ def extract_user_text(d):
     first_line = text.split("\n", 1)[0]
     if first_line.startswith(("---", "#", "|", "```")):
         return None
-    if "<task-notification>" in text or "<task-id>" in text:
+    # System-injected tags are matched as substrings, not prefixes — a relay or
+    # notification arrives behind a preamble ("Another Claude session sent a
+    # message:"), which walks straight through startswith.
+    if any(t in text for t in ("<task-notification>", "<task-id>", "<teammate-message")):
         return None
     if len(text) > 800:
         return None

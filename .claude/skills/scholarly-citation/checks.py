@@ -26,7 +26,39 @@ import re
 # Grade markers [fact]/[analysis]/[forecast] — the live English source.md schema.
 GRADE_MARKER_RE = re.compile(r"^-\s*\[(fact|analysis|forecast)\]", re.MULTILINE)
 CLAIM_LINE_RE = re.compile(r"^-\s+(.+?)\s*$", re.MULTILINE)
-GRADE_PLUS_CLAIMANT_RE = re.compile(r"^-\s*\[(fact|analysis|forecast)\]\s+\[\[", re.MULTILINE)
+# What G2 measures is whether the claimant is **named** (WP:ASF). The wikilink is
+# one means to that end, so when a speaker falls below the page-creation threshold
+# the plain-text real name is the terminal form — accepting only wikilinks leaves
+# every page citing such a speaker permanently FAILing, and the author reaches for
+# some nearby entity to get through (the misattribution path). Plain text is
+# admitted, and the three cases below are screened out instead. Whether a short
+# plain head is the speaker or the topic is not machine-decidable and stays with
+# the Desk.
+GRADE_HEAD_RE = re.compile(r"^\[(?:fact|analysis|forecast)\]\s+(.*)$")
+# (1) Anonymous / collective subjects are barred in plain text too — the
+# unattributed phrasing WP:ASF forbids. In English the discriminator is case: a
+# named source carries a capitalized final word (`Free Software Foundation`),
+# a weasel does not (`the foundation`). Keying on the word alone without that
+# boundary would drop the very names the guideline offers as correct examples.
+WEASEL_LAST_WORD = frozenset({
+    "government", "industry", "market", "media", "authorities", "officials",
+    "sources", "experts", "observers", "insiders", "critics", "supporters",
+    "analysts", "community", "foundation", "public", "regulators", "researchers",
+    "commentators", "advocates", "developers", "companies", "vendors",
+})
+_LEADING_ARTICLE_RE = re.compile(r"^(?:the|a|an)\s+", re.I)
+
+
+def _is_weasel_head(head: str) -> bool:
+    words = _LEADING_ARTICLE_RE.sub("", head).split()
+    if not words:
+        return True
+    last = words[-1]
+    return last.lower().strip(".,;:") in WEASEL_LAST_WORD and not last[:1].isupper()
+
+
+# (2) Blocks pushing content into the head slot. Longest measured in-corpus: 28.
+CLAIMANT_HEAD_MAX = 40
 CITATION_PREFIX_RE = re.compile(r"^-\s*(cites|references|contradicts|defines)\s*:", re.MULTILINE)
 CONNECT_LINE_RE = re.compile(r"^-\s+.+?$", re.MULTILINE)
 QUOTE_LINE_RE = re.compile(r"^>\s+[\"“”].+", re.MULTILINE)
@@ -166,17 +198,30 @@ def evaluate_citation(
                 if len(g1_missing_samples) >= 3:
                     break
 
-    grade_with_claimant = len(GRADE_PLUS_CLAIMANT_RE.findall(claims_body))
-    g2_pass = (claim_total == 0) or (grade_with_claimant == claim_total)
+    claimant_slot_filled = 0
+    g2_plain = 0
     g2_missing_samples = []
-    if not g2_pass:
-        for line in claim_lines:
-            if re.match(r"\[(fact|analysis|forecast)\]", line) and not re.match(
-                r"\[(fact|analysis|forecast)\]\s+\[\[", line
-            ):
-                g2_missing_samples.append(line[:60])
-                if len(g2_missing_samples) >= 3:
-                    break
+    for line in claim_lines:
+        m = GRADE_HEAD_RE.match(line)
+        if not m:
+            continue  # a missing grade marker is G1's business
+        rest = m.group(1)
+        if rest.startswith("[["):
+            claimant_slot_filled += 1
+            continue
+        head = rest.split("—", 1)[0].strip() if "—" in rest else ""
+        # (3) A plain head that names a real page is evasion — it could have been linked.
+        if (
+            head
+            and len(head) <= CLAIMANT_HEAD_MAX
+            and not _is_weasel_head(head)
+            and head not in page_index
+        ):
+            claimant_slot_filled += 1
+            g2_plain += 1
+        elif len(g2_missing_samples) < 3:
+            g2_missing_samples.append(line[:60])
+    g2_pass = (claim_total == 0) or (claimant_slot_filled == claim_total)
 
     g3_violations = len(G3_COMPOSITE_RE.findall(claims_body))
     g3_pass = g3_violations == 0
@@ -270,7 +315,7 @@ def evaluate_citation(
 
     return {
         "g1": (g1_pass, grade_count, claim_total, g1_missing_samples),
-        "g2": (g2_pass, grade_with_claimant, claim_total, g2_missing_samples),
+        "g2": (g2_pass, claimant_slot_filled, claim_total, g2_missing_samples, g2_plain),
         "g3": (g3_pass, g3_violations),
         "g4": (g4_pass, claimant_valid, claimant_total, g4_invalid_samples),
         "g5": (g5_pass, g5_violations),

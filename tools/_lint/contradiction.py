@@ -1370,6 +1370,13 @@ def _execute_mapping_plan(
     return actions
 
 
+def _drift_list(slugs: set[str], cap: int = 8) -> str:
+    """Slug list led by its total. A bare truncated list reads as the whole set, so
+    whatever sits past the cut is dropped for good — lead with the count, then cut."""
+    s = sorted(slugs)
+    return str(s) if len(s) <= cap else f"{len(s)} total: {s[:cap]} …"
+
+
 def _check_frontmatter_drift(themes_doc: dict, claims: list[dict], only_theme: str | None = None) -> list[str]:
     """G. Informational — theme MD frontmatter `sources:` vs JSON-implied sources.
 
@@ -1406,9 +1413,9 @@ def _check_frontmatter_drift(themes_doc: dict, claims: list[dict], only_theme: s
         if only_md or only_json:
             parts = []
             if only_json:
-                parts.append(f"JSON-implied not in MD: {sorted(only_json)[:3]}")
+                parts.append(f"JSON-implied not in MD: {_drift_list(only_json)}")
             if only_md:
-                parts.append(f"MD-only: {sorted(only_md)[:3]}")
+                parts.append(f"MD-only: {_drift_list(only_md)}")
             notes.append(f"  {slug}.md: " + " | ".join(parts))
 
     return notes
