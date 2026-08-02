@@ -4,7 +4,7 @@ This guide defines the body structure of **L2-2 entity·concept hubs** (`wiki/en
 
 ## Body Structure
 
-The body **must** include the two H2 sections below (auto-verified by `/wiki-lint hub schema`; `hub body` is a separate density advisory with no pass/fail impact).
+The body **must** include the two H2 sections below (auto-verified by `/wiki-lint hub schema`; `hub body` is a separate density check that gates too — any advisory there exits 1).
 
 ### Required Sections
 
@@ -56,4 +56,4 @@ The hub-structure decisions for full hub authoring (Columnist deep cross-source)
 - **③ shared-owner delegation** (`enc.summary-style`) — an event/mechanism shared by two or more hubs is narrated by one owner, with the rest as delegation pointers (mutually stating the role split in the overview). Confirm the delegation target actually holds the detail (no dangling).
 - **④ wiki-operator COI disclosure** (editorial integrity — not craft; cf. WP:COI · journalistic disclosure) — when the operator is the source author or speaking subject, explicitly disclose "analysis conducted by the wiki operator". Disclose independently on each cross-cited hub.
 
-**self-VERIFY₀** — after authoring, confirm `hub voice`·`hub timeline`·`hub body` PASS. After ≤ 2 self-attempts on the same cause, either PASS or hand off (SoT: [`agents/columnist.md`](../agents/columnist.md)).
+**self-VERIFY₀** — after authoring, run `hub voice`·`hub timeline`·`hub body` and confirm **0 items naming the file you wrote** — the hub group is repo-wide, so other hubs' pre-existing drift is not a hand-off blocker. After ≤ 2 self-attempts on the same cause, either resolve or hand off (SoT: [`agents/columnist.md`](../agents/columnist.md)).

@@ -267,7 +267,10 @@ Surface defects early while writing so they are remedied before the Desk handoff
 Quantitative scope only — qualitative self-review is still the Desk's domain
 (.claude/agents/desk.md).
 
-After ≤ 2 self-attempts for the same reason, PASS or force the handoff (blocks an infinite self-loop).
+`graph`·`hub`·`meta` are corpus-wide groups — there, self-VERIFY₀ is satisfied by
+0 items naming this file, not by a clean global run.
+
+After ≤ 2 self-attempts for the same reason, resolve or force the handoff (blocks an infinite self-loop).
 
 Reference: .claude/agents/columnist.md "self-VERIFY₀" + .claude/agents/README.md
            "Standard ADAPT chain" + .claude/agents/copyeditor.md "invocation contract"."""

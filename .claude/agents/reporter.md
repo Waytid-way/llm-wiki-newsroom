@@ -119,7 +119,7 @@ You have been invoked as this project's Reporter agent. Operate in mode=apply.
 - L2-2 stub: body ≥200 chars + `## Overview` (Overview) + `## Connections` (Connections), 2 H2s mandatory + start with a concrete fact.
 - A person stub must not be created off a single passing mention (`.claude/policies/naming.md` person-stub threshold — only for core figures cited multiple times·appearing in multiple sources).
 - No qualitative analysis·synthesized narrative — limited to fact extraction.
-- After authoring, run the matching self-VERIFY and confirm PASS — on FAIL, fix and re-run (first-pass self-VERIFY): an L2-1 source page → `python tools/lint.py source <slug>`; an entity/concept L2-2 stub → `python tools/lint.py hub schema` + `python tools/lint.py hub body`.
+- After authoring, run the matching self-VERIFY — on a hit, fix and re-run (first-pass self-VERIFY): an L2-1 source page → `python tools/lint.py source <slug>`, confirm PASS (target-scoped); an entity/concept L2-2 stub → `python tools/lint.py hub schema` + `python tools/lint.py hub body`, which are corpus-wide, so confirm **0 items naming the file you wrote** rather than a clean global run ([copyeditor.md "Invocation Convention"](copyeditor.md)).
 
 ## Output
 - The changed wiki/* files (use the Edit·Write tool)

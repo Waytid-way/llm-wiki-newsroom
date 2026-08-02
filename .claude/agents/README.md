@@ -44,7 +44,7 @@ The VERIFY column of the matrix above is instantiated as a **ladder that climbs 
 | Stage | Owner | Cost | Determinism | Hand-off on failure |
 |---|---|---|---|---|
 | 0. Post-edit hook | [`.claude/hooks/*.sh`](../hooks/) | 0 | deterministic | lint-chain-guard auto-block / dispatch.sh advisory |
-| 1. self-VERIFY₀ (target-scope lint) | author (Reporter·Columnist) | low | deterministic | hand off to VERIFY₁ after 2 self-attempts on the same cause |
+| 1. self-VERIFY₀ (lint judged on own output) | author (Reporter·Columnist) | low | deterministic | hand off to VERIFY₁ after 2 self-attempts on the same cause |
 | 2. VERIFY₁ (full deterministic lint) | Copy Editor [`tools/lint.py`](../../tools/lint.py) | low | deterministic | ADAPT₁ → back to author |
 | 3. VERIFY₂ (qualitative review) | Desk (6 lenses·persona) | medium | probabilistic | ADAPT₂ → author → back to VERIFY₁ |
 | 4. Publish gate | Editor-in-Chief | low | deterministic | 3rd FAIL on same cause → escalate to human |
@@ -59,9 +59,9 @@ The straight-line instances of ladder stages 1·2·3 for L2-3·L2-4 content are 
 ```
 [GROUND+APPLY] Columnist — full-context Read in own context + write EDITOR block
    ↓
-[SELF-VERIFY₀] Columnist — target-scope quantitative lint (self-invoked, outside ADAPT counter)
+[SELF-VERIFY₀] Columnist — quantitative lint judged on own output (self-invoked, outside ADAPT counter)
    ↓
-PASS, or FAIL after ≤ 2 self-attempts on same cause → hand off to VERIFY₁
+Criterion met, or after ≤ 2 self-attempts on same cause → hand off to VERIFY₁
    ↓
 [VERIFY₁] Copy Editor — deterministic Rubric (quantitative)
    ↓

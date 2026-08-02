@@ -29,7 +29,7 @@ The columnist's essence is **deep sequential reading + cross-source synthesis**.
 - Receiving the Copy Editor's quantitative Rubric result and ADAPTing (fix using only the Rubric result)
 - Receiving the Desk's qualitative defects and ADAPTing (addressing specific defects)
 - Small spot-check reads during authoring (may add 1-2 adjacent sources to the read)
-- First quantitative-lint self-VERIFY₀ of one's own output — run target-scope `python tools/lint.py` immediately after authoring to confirm PASS (command matrix SoT: [copyeditor.md "Invocation Convention"](copyeditor.md)). On FAIL, re-run one's own ADAPT but limited to ≤ 2 attempts on the same cause; on the 2nd FAIL, hand off to VERIFY₁ in the current state. Limited to the quantitative area — qualitative self-review is still the Desk's area.
+- First quantitative-lint self-VERIFY₀ of one's own output — immediately after authoring run the check for your layer and meet its completion criterion — **PASS** where the group accepts a target, **0 items naming the file you wrote** where the run is corpus-wide (command + per-group scope SoT: [copyeditor.md "Invocation Convention"](copyeditor.md)). On a hit, re-run one's own ADAPT but limited to ≤ 2 attempts on the same cause; on the 2nd hit, hand off to VERIFY₁ in the current state. Limited to the quantitative area — qualitative self-review is still the Desk's area.
 
 **X — what NOT to do**:
 - External lookup (WebSearch·WebFetch) — Reporter's area; escalate to the Editor-in-Chief if needed
@@ -104,7 +104,7 @@ You have been invoked as this project's Columnist agent. You own authoring of <L
 
 ## Output
 - Edit·Write the target file
-- After authoring, run self-VERIFY₀ → confirm target-scope `python tools/lint.py` PASS (for the command, see the table in [copyeditor.md "Invocation Convention"](copyeditor.md)). On FAIL, do ≤ 2 own ADAPTs on the same cause, then PASS or forced hand-off.
+- After authoring, run self-VERIFY₀ → PASS where the group accepts a target, **0 items naming the file you wrote** where the run is corpus-wide (for the command and its scope, see the table in [copyeditor.md "Invocation Convention"](copyeditor.md)). On a hit, do ≤ 2 own ADAPTs on the same cause, then resolve or forced hand-off.
 - Update frontmatter last_updated (only when the body changed)
 - Change summary (for the Editor-in-Chief hand-off)
 ```
@@ -154,7 +154,7 @@ Accidentally editing an AUTO block (between `<!-- AUTO:* BEGIN/END -->`) while a
 **Risk — self-bias from self-reviewing one's own output (limited to the qualitative area)**:
 Qualitative evaluation has strong author self-bias. Quantitative lint is deterministic, so self-bias is irrelevant — permitted via self-VERIFY₀ (consistent with [reporter.md](reporter.md)).
 
-**Mitigation**: the qualitative self-review prompt is itself forbidden. Qualitative review must be handed to the Desk. Quantitative self-VERIFY₀ is the author's self-check stage *before* hand-off, outside the ADAPT counter (≤ 2 self-attempts on the same cause → forced hand-off on the 2nd FAIL blocks an infinite self-loop).
+**Mitigation**: the qualitative self-review prompt is itself forbidden. Qualitative review must be handed to the Desk. Quantitative self-VERIFY₀ is the author's self-check stage *before* hand-off, outside the ADAPT counter (≤ 2 self-attempts on the same cause → forced hand-off on the 2nd hit blocks an infinite self-loop).
 
 **Risk — violating Cognition Principle 1 (relying on another agent's summary)**:
 If the Editor-in-Chief passes a summary of the Reporter's GROUND result to the columnist, it becomes a telephone game.
