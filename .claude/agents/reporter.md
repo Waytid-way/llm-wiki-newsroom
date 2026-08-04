@@ -119,11 +119,13 @@ You have been invoked as this project's Reporter agent. Operate in mode=apply.
 - L2-2 stub: body ≥200 chars + `## Overview` (Overview) + `## Connections` (Connections), 2 H2s mandatory + start with a concrete fact.
 - A person stub must not be created off a single passing mention (`.claude/policies/naming.md` person-stub threshold — only for core figures cited multiple times·appearing in multiple sources).
 - No qualitative analysis·synthesized narrative — limited to fact extraction.
+- The mandatory Read above is GROUND Ladder R0 anchor — on an insufficiency signal (no evidence span secured · unresolved wikilink · consecutive empty searches), rise to R1–R3; R4 (whole-corpus read) is gated ([agents/README.md § GROUND Ladder](README.md#ground-ladder)).
 - After authoring, run the matching self-VERIFY — on a hit, fix and re-run (first-pass self-VERIFY): an L2-1 source page → `python tools/lint.py source <slug>`, confirm PASS (target-scoped); an entity/concept L2-2 stub → `python tools/lint.py hub schema` + `python tools/lint.py hub body`, which are corpus-wide, so confirm **0 items naming the file you wrote** rather than a clean global run ([copyeditor.md "Invocation Convention"](copyeditor.md)).
 
 ## Output
 - The changed wiki/* files (use the Edit·Write tool)
 - A change summary (for handoff to the Editor-in-Chief)
+- `grounded_at`: the final GROUND rung reached (`R0`–`R4`)
 ```
 
 ## Risk-Mitigation Design

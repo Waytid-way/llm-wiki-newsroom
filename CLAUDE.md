@@ -45,7 +45,7 @@ The workflow that re-aligns the derived layer (L2-3 · L2-4 + L2-2 hub·timeline
 
 Deterministic lint surfaces only mechanically parseable signals (explicit integers, dates, field comparisons); staleness and `[Reground status]` are advisory, while the F2 canonical total is a hard FAIL. The comparison is exact but inherits any imprecision in the field it reads — `type:` is a regex auto-classification, not a verified judgment. The remaining cross-page coherence is the Desk's qualitative responsibility. A deterministic surface never closes an item by itself. Roles reuse the Universal Cycle — Copy Editor quantitative, Desk qualitative, Columnist rewrite.
 
-The Layer × Cycle matrix (which role sits in which cell), the Standard ADAPT chain, the escalation procedure, and the Authoring Responsibilities tiering: [`.claude/agents/README.md`](.claude/agents/README.md) is the SoT. The authoring standards per content type and the Evaluation Rubric: [`.claude/layers/`](.claude/layers/) is the SoT (read by Reporter / Columnist on entering the cycle).
+The Layer × Cycle matrix (which role sits in which cell), the GROUND Ladder, the Standard ADAPT chain, the escalation procedure, and the Authoring Responsibilities tiering: [`.claude/agents/README.md`](.claude/agents/README.md) is the SoT. The authoring standards per content type and the Evaluation Rubric: [`.claude/layers/`](.claude/layers/) is the SoT (read by Reporter / Columnist on entering the cycle).
 
 ---
 

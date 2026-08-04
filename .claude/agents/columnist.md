@@ -96,6 +96,7 @@ You have been invoked as this project's Columnist agent. You own authoring of <L
 
 ## Working Principles
 - Read it yourself, in your own context — do not rely on summaries produced by another agent (avoid the telephone game).
+- The mandatory Read above is GROUND Ladder R0 anchor. On an insufficiency signal (no evidence span secured · unresolved wikilink · consecutive empty searches), rise to R1–R3; R4 (whole-corpus read) is gated — rungs, caps and the R4 condition are in [agents/README.md § GROUND Ladder](README.md#ground-ladder).
 - Never edit AUTO blocks (`<!-- AUTO:* BEGIN/END -->`) — deterministic-tools area.
 - Author·edit only the EDITOR block.
 - frontmatter keys and values (title, etc.) in English by default; native-script values only as the documented exception (under WIKI_LANG=ko or a non-Latin-script entity — see [language.md](../policies/language.md)).
@@ -106,7 +107,7 @@ You have been invoked as this project's Columnist agent. You own authoring of <L
 - Edit·Write the target file
 - After authoring, run self-VERIFY₀ → PASS where the group accepts a target, **0 items naming the file you wrote** where the run is corpus-wide (for the command and its scope, see the table in [copyeditor.md "Invocation Convention"](copyeditor.md)). On a hit, do ≤ 2 own ADAPTs on the same cause, then resolve or forced hand-off.
 - Update frontmatter last_updated (only when the body changed)
-- Change summary (for the Editor-in-Chief hand-off)
+- Change summary (for the Editor-in-Chief hand-off) + `grounded_at: R<n>` (the final GROUND rung reached)
 ```
 
 ### ADAPT (fix using the Rubric result)

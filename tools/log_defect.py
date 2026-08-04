@@ -16,7 +16,8 @@ self-VERIFY₀ + VERIFY₁ + regression repetition double-counts the same FAIL a
 commit noise. One batch → low noise.
 
 Two record kinds (`kind`):
-- defect:     {date, layer, target, caught_at, check, cluster, mechanism, severity, addressable, run}
+- defect:     {date, layer, target, caught_at, check, cluster, mechanism, severity, addressable,
+               grounded_at?, run}
 - transition: {date, cluster, surface, change, held_in_delta, held_out_delta, decision,
                rationale, model, commit, held_in_sampled, held_out_sampled}
 
@@ -27,6 +28,11 @@ caught_at has the form `<stage>:<detail>` (e.g. `lint:source`, `desk:density`) �
 the leading segment carries which verification surface caught it. Transition
 `rationale` (one-line why) + `model` (which model produced the measured output)
 make the accept/reject ledger auditable.
+
+`grounded_at` is optional — the rung at which the authoring role stopped on the GROUND
+Ladder (`R0`-`R4`; SoT is `.claude/agents/README.md` § GROUND Ladder). Validated for form
+when present: a typo'd rung would silently corrupt the very distribution the field exists
+to observe (which rung under-read defects concentrate at).
 
 Usage:
     echo '{"kind":"defect","target":"...","cluster":"...","caught_at":"lint:source"}' \
@@ -95,6 +101,9 @@ def validate(rec: dict) -> str | None:
         stage = str(rec["caught_at"]).split(":")[0]
         if stage not in STAGES:
             return f"caught_at stage must be one of {list(STAGES)} (got {stage!r})"
+        ga = rec.get("grounded_at")
+        if ga is not None and not re.fullmatch(r"R[0-4]", str(ga)):
+            return f"grounded_at must be of the form R0-R4 (got {ga!r})"
     return None
 
 
