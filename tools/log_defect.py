@@ -34,6 +34,12 @@ Ladder (`R0`-`R4`; SoT is `.claude/agents/README.md` § GROUND Ladder). Validate
 when present: a typo'd rung would silently corrupt the very distribution the field exists
 to observe (which rung under-read defects concentrate at).
 
+The two fields are the record's two coordinates in the four-loop model (CLAUDE.md § The
+Four Loops): `grounded_at` is the input side (how deep the author read before writing),
+`caught_at` the feedback side (the surface that caught it — `lint`·`desk` are the content
+ladder's surfaces, spanning the inner and outer loops; `desk:bundle` is the Reground loop;
+`blind`·`probe` the Meta loop's own verification).
+
 Usage:
     echo '{"kind":"defect","target":"...","cluster":"...","caught_at":"lint:source"}' \
         | python tools/log_defect.py

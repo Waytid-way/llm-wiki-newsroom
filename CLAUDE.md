@@ -35,9 +35,20 @@ Every workflow in this project maps onto a four-stage cycle — ingest, query, l
 
 **The 5 invariants** (APPLY stage): read first, follow the pattern, preserve policy, minimal change, stay in scope.
 
+### The Four Loops
+
+The VERIFY·ADAPT stages run at four scopes; the four together are the project's feedback machinery — one skeleton, widening in scope and slowing in timescale. The [GROUND Ladder](.claude/agents/README.md#ground-ladder) is not a fifth loop: it disciplines input acquisition once, at cycle entry, before there is anything to correct. The content-authoring cycles inside the Inner·Outer·Reground loops enter GROUND through it; the Meta loop's GROUND deliberately keeps no ladder (rationale in that section).
+
+| Loop | Corrects | Scope · timescale | Mechanism (SoT) |
+|---|---|---|---|
+| **Inner** | the draft | one draft · while writing | post-edit hooks + self-VERIFY₀ ([Content Verification Ladder](.claude/agents/README.md#content-verification-ladder)) |
+| **Outer** | the page | one page · at publication | VERIFY₁ (Copy Editor) → VERIFY₂ (Desk) → publish gate (same ladder) |
+| **Meta** | the rules | recurring defect mechanisms · across cycles | [§ Self-Evolution](#self-evolution) — its VERIFY is the Guideline Verification Ladder |
+| **Reground** | the published corpus | derived pages · post-publication | [§ Reground](#reground) |
+
 ### Reground
 
-The workflow that re-aligns the derived layer (L2-3 · L2-4 + L2-2 hub·timeline) with ground truth — **published pages come back around as GROUND input**. The blind spot it closes: the quality machinery points only at sources, so nothing ever re-reads whether the pages the wiki itself produced have drifted. Three triggers (condition → realign against · surfacing · execution):
+The **Reground loop** — the workflow that re-aligns the derived layer (L2-3 · L2-4 + L2-2 hub·timeline) with ground truth — **published pages come back around as GROUND input**. The blind spot it closes: the quality machinery points only at sources, so nothing ever re-reads whether the pages the wiki itself produced have drifted. Three triggers (condition → realign against · surfacing · execution):
 
 - **Update** — upstream sources changed → the sources · `lint staleness` · [`staleness-reground-runbook`](.claude/operations/staleness-reground-runbook.md) (Columnist)
 - **Follow-up** — our own claims carry an unresolved status or a matured deadline → elapsed reality · `lint contradiction`'s `[Reground status]` · Desk re-adjudication ending at the operator gate. **No close path exists yet**: the build stamps every claim `status: open` and nothing writes `resolved`, so a surfaced item re-fires on every run. The first non-empty surface is the trigger to build an adjudication ledger (operator gate)
@@ -51,7 +62,7 @@ The Layer × Cycle matrix (which role sits in which cell), the GROUND Ladder, th
 
 ## Self-Evolution
 
-The guideline layer improves through the same four-stage cycle as content — the loop that proposes, measures, and adopts changes to the instruction SoTs themselves:
+The guideline layer improves through the same four-stage cycle as content — the **Meta loop**, which proposes, measures, and adopts changes to the instruction SoTs themselves:
 
 | Stage | Content cycle | Guideline self-evolution |
 |---|---|---|

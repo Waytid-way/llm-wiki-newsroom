@@ -150,7 +150,7 @@ The default operating pattern is that the wiki operator does not edit the `.clau
 
 ## Guideline Verification Ladder
 
-Mandatory right before commit when changes to `.claude/` (agents·commands·layers·policies·operations·skills)·`CLAUDE.md` are staged — the guideline-layer counterpart of the content ladder ([agents/README.md § Content Verification Ladder](README.md#content-verification-ladder)). The `dispatch.sh` hook (minimality advisory) reminds at edit time — no reliance on memory. Climb from the cheapest deterministic rung upward:
+Mandatory right before commit when changes to `.claude/` (agents·commands·layers·policies·operations·skills)·`CLAUDE.md` are staged — the guideline-layer counterpart of the content ladder ([agents/README.md § Content Verification Ladder](README.md#content-verification-ladder)) and the **Meta loop**'s VERIFY stage ([CLAUDE.md § The Four Loops](../../CLAUDE.md#the-four-loops)). The `dispatch.sh` hook (minimality advisory) reminds at edit time — no reliance on memory. Climb from the cheapest deterministic rung upward:
 
 1. **Quantitative lint** — `python tools/lint.py meta` PASS (the `guideline-writing` skill's deliberation-narrative detectors + the project voice patterns + parity·integrity passes)
 2. **Minimal-edit self-check** — the craft criteria are the skill's Pruning + Bloat control sections ([skills/guideline-writing/SKILL.md](../skills/guideline-writing/SKILL.md)); locally, keep voice·depth consistency with sibling bullets and run `check_bullet_depth` on the diff. The rung is complete only when the response presents the check evidence (edit↔sibling comparison, per-item findings) — a bare "passed" declaration is incomplete

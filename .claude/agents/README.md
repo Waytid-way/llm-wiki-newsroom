@@ -57,7 +57,7 @@ The GROUND column of the matrix above is instantiated as a **ladder that widens 
 
 ## Content Verification Ladder
 
-The VERIFY column of the matrix above is instantiated as a **ladder that climbs from the lowest-cost, lowest-determinism stage upward**. The principle: defects that an automated stage will catch are not pushed all the way up to a human cycle. The guideline layer has an isomorphic counterpart — [editor-in-chief.md § Guideline Verification Ladder](editor-in-chief.md#guideline-verification-ladder) — for changes to the instruction SoTs themselves.
+The VERIFY column of the matrix above is instantiated as a **ladder that climbs from the lowest-cost, lowest-determinism stage upward**. The principle: defects that an automated stage will catch are not pushed all the way up to a human cycle. The guideline layer has an isomorphic counterpart — [editor-in-chief.md § Guideline Verification Ladder](editor-in-chief.md#guideline-verification-ladder) — for changes to the instruction SoTs themselves. In the four-loop vocabulary ([CLAUDE.md § The Four Loops](../../CLAUDE.md#the-four-loops)): stages 0–1 are the **inner loop**, stages 2–4 the **outer loop**, and stage 5 is the escalation terminal every loop shares.
 
 | Stage | Owner | Cost | Determinism | Hand-off on failure |
 |---|---|---|---|---|
