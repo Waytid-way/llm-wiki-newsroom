@@ -22,7 +22,11 @@
     wiki pages, keeps them cross-referenced with wikilinks and a backlink index,
     flags contradictions at ingest time rather than query time, and enriches
     existing pages every time you add a new source. Retrieval then reads a small
-    number of already-structured pages instead of raw chunks.
+    number of already-structured pages instead of raw chunks. An independent
+    team at WeChat/Tencent built and benchmarked the same wiki-shaped approach
+    and reports it beating dense-RAG and graph-RAG baselines on three multi-hop
+    QA benchmarks (arXiv 2605.25480) — their numbers describe their system, not
+    this one, but they are convergent evidence for the shape.
 
 - q: "Does it require API keys?"
   a: >-

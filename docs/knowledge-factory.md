@@ -7,7 +7,7 @@ description: >-
 article_schema: true
 schema_inlanguage: en
 schema_url: "https://alfadur7.github.io/llm-wiki-newsroom/knowledge-factory/"
-schema_keywords: "knowledge factory, harness engineering, software factory, inner loop, outer loop, meta loop, reground loop, four loops, agentic workflow, AI agent harness, LLM wiki, Karpathy LLM Wiki, writer reviewer separation, context isolation, self-evolving guidelines, human in the loop, knowledge staleness, Claude Code, multi-agent"
+schema_keywords: "knowledge factory, harness engineering, software factory, inner loop, outer loop, meta loop, reground loop, four loops, GROUND ladder, agentic workflow, AI agent harness, LLM wiki, Karpathy LLM Wiki, writer reviewer separation, context isolation, self-evolving guidelines, human in the loop, knowledge staleness, Claude Code, multi-agent"
 hreflang_en: "https://alfadur7.github.io/llm-wiki-newsroom/knowledge-factory/"
 hreflang_ko: "https://alfadur7.github.io/llm-wiki-newsroom/ko/knowledge-factory/"
 ---
@@ -54,6 +54,7 @@ This article asks the same question of knowledge work. What should the factory l
   - Outer loop: a two-gate review right before publication
   - Meta loop: turning repeat mistakes into permanent rules
   - Reground loop: re-verifying and rewriting knowledge that has gone stale
+- **Not everything is a loop.** The newest mechanism is a **GROUND Ladder** that decides how much the writer reads before drafting, widening only on named signals of insufficient evidence — input discipline rather than feedback, and still unmeasured.
 - **Human-in-the-loop by checklist, not by gut feeling.** The situations that require operator approval are enumerated rather than judged case by case.
 - **Stated limits.** What the deterministic checks can't reach, follow-up items that never close, review history spread across several files, and the fact that the design's advantage is still a hypothesis under test.
 
@@ -152,6 +153,16 @@ Once code is built and shipped, it stays put until the spec changes. **Knowledge
 - **Follow-up** — one of our own claims carries an unresolved marker or a deadline that has now passed. The Desk re-adjudicates and the operator confirms. *(Circling back to a story you promised to follow.)*
 - **Correction** — our own pages disagree with each other. The Desk re-reads a published cluster as a bundle, catching the mismatches that reading one page at a time can't reveal. *(A correction notice.)*
 
+### Not a loop: the GROUND Ladder
+
+Every loop above is feedback — something exists, gets checked, gets corrected. The newest mechanism governs the side the loops never touched: how much the writer reads *before* drafting. It's a ladder, and reading climbs it only as far as it has to.
+
+- **The rungs.** Start from what the page itself declares it depends on. Widen to the index, then to the links the build has already computed, then to content search for the relations no link declares — and, while the whole wiki still fits in a single read, to reading all of it.
+- **The signal to widen.** A writer climbs only when a named signal says the evidence in hand is thin: a claim with no source passage secured, a wikilink that doesn't resolve, searches coming back empty. The signal also picks the rung — an unresolved link sends you straight to the computed links, not through every step in between.
+- **The recorded rung.** Every hand-off notes where the writer stopped, and the defect ledger keeps that next to the gate that later caught the defect. Without the pair, a defect born from reading too little looks exactly like bad writing, and the meta loop's only available prescription is "fix the writing rules" — never "read wider, earlier."
+
+It sits outside the diagram deliberately. A ladder that runs once, at the start of a draft, is input discipline rather than feedback; calling it a fifth loop would blur the very distinction the other four are built on. The design follows the ablation result from an independently built and benchmarked system of the same wiki shape (["Retrieval as Reasoning", arXiv:2605.25480](https://arxiv.org/abs/2605.25480)), where removing multi-round traversal cost roughly twice the accuracy that removing the wiki structure did. That ordering — how you read mattering more than how the wiki is built — is what prompted the ladder here. Those are their numbers for their system; this ladder is new, its stopping rules are provisional, and its effect is unmeasured.
+
 ## 4. Control plane: keeping the trail legible
 
 Improving a factory requires that every trace of its work be recorded somewhere the meta loop can actually read. The software factory calls this the **control plane**.
@@ -187,7 +198,7 @@ For transparency, the structural limits as they currently stand:
 - **What rule checks can't reach.** Gate 1 is pure Python with no AI calls at all. That makes it cheap and fast enough to run on everything, but any check that requires reading for meaning and intent can't be automated there, so it falls to the Desk. That makes the Desk's load wider here than in Knox's version, where the verifier layer is itself LLM-driven.
 - **Follow-up items that never close.** There's no procedure yet for marking a surfaced follow-up as resolved, so once an item is flagged it comes back on every run. The plan is to build an adjudication ledger once items actually start accumulating.
 - **Review history is scattered.** Unlike a pull request, where every review comment stays attached to one object, the history here is spread across the work log, the reports, and the defect ledger.
-- **Still a hypothesis.** Whether the four loops and the separate qualitative review actually produce better knowledge is still under test, through blind comparisons and operational data. It's a design argument, not a measured result.
+- **Still a hypothesis.** Whether the four loops and the separate qualitative review actually produce better knowledge is still under test, through blind comparisons and operational data. It's a design argument, not a measured result. The GROUND Ladder is earlier still: provisional caps, and nothing measured yet.
 
 ## Closing: what actually changes is the human role
 

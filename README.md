@@ -54,6 +54,8 @@ flowchart BT
 | **Meta** | when mistakes recur | repeat failures become proposals to amend the authoring rules themselves, adopted only after blind measurement plus operator sign-off |
 | **Reground** | after publication | published pages that have gone stale or inconsistent come back around as factory input |
 
+One piece of the machinery is deliberately *not* a loop. A loop is feedback — something exists, gets checked, gets corrected. Before any loop runs, a **GROUND Ladder** governs the input side: how much the writer reads before drafting, widening from the page's declared dependencies toward the whole corpus only on a named signal that the evidence so far is insufficient. The loops correct what came out; the ladder disciplines what goes in — every authoring cycle enters through it. (Details under [Key Features](#before-the-loops--the-ground-ladder).)
+
 The first three loops mirror the "software factory" playbook for AI-assisted coding; the fourth exists because knowledge, unlike code, keeps decaying after you ship it. The full argument for this design is in the companion article: **[The Knowledge Factory](https://alfadur7.github.io/llm-wiki-newsroom/knowledge-factory/)**.
 
 Everything else in this README — the commands, the tools, the feature list — hangs off this map.
@@ -134,7 +136,7 @@ You don't have to memorize the slash commands — you can request the same tasks
 
 ## Key Features
 
-Grouped by where each feature sits in [the concept](#the-concept) above: first the product (the wiki itself and the ways to explore it), then the loops that make it trustworthy.
+Grouped by where each feature sits in [the concept](#the-concept) above: first the product (the wiki itself and the ways to explore it), then the reading discipline that feeds it, then the loops that make it trustworthy.
 
 ### The wiki itself
 
@@ -253,6 +255,16 @@ Specifying an entity and a year like `/wiki-timeline Meta 2024` generates a **st
 `/wiki-export` exports the wiki in **two layers** — a RAG layer (synthesis pages + directory) that builds the answers, and deep links into the graph browser that serve the detailed originals. A Claude.ai project loads attached knowledge **wholesale into context** rather than retrieving it, so entity/concept bodies (about 70% of the total) and source originals are not put into RAG — doing so would vastly exceed the context limit (~200K tokens). Instead, `index.md` is a directory holding every entity/concept with a one-line description + deep link, and the synthesis layer (domain overviews · contradiction analyses · analysis reports) fills in the substance of answers. `README.md` carries the upload budget guide (start from Core ~130K tokens) and the deep-link convention to paste into project instructions. Push these files to GitHub and connect them as Claude.ai **Project Knowledge**, and you can query the wiki even from a phone — answers built from the synthesis layer, details pointed to via graph links.
 
 So that answers understand the wiki structure and attach links to the graph, paste the entire `wiki-export/README.md` that export also produces (an instruction document covering file structure, answer rules, and the deep-link convention) once into the **custom instructions** box of the Claude.ai project. Then, when citing a hub the answer links to that page, and when pinning a specific claim's source it links straight to the original.
+
+### Before the loops — the GROUND Ladder
+
+The four loops are all feedback: something exists, gets checked, gets corrected. The newest mechanism governs the *input* side instead — how much the writer reads before drafting, as a ladder climbed only as far as the evidence demands.
+
+- **The rungs** — start from the target page's declared dependencies (R0), then widen to the index (R1), the links the build has already computed (R2), content search for the relations no link declares (R3), and, while the corpus still fits in one read, an exhaustive pass over everything (R4).
+- **The signal to climb** — widening happens only on a named insufficiency signal: a claim with no evidence span secured, an unresolved wikilink, consecutive empty searches. The signal also picks the rung, so an unresolved link jumps straight to R2 instead of stepping through R1.
+- **The recorded rung** — every hand-off notes where the writer stopped (`grounded_at`), and the defect corpus stores it alongside *which review surface caught the defect*. That second coordinate is the point: without it, a defect born from under-reading is indistinguishable from bad writing, so the meta loop's only possible prescription was "fix the writing rules." Now "widen the reading earlier" is a diagnosis the data can produce.
+
+The design follows the ablation result of an independently built system of the same shape (see [How it differs from RAG](#how-it-differs-from-rag) below). *(New and unproven: the stopping rules are provisional placeholders, nothing consumes the recorded rungs yet, and no effect has been measured. The plan is reverse observation — accumulate two or three cycles of `grounded_at` records, then let the distribution calibrate the rules and justify, or kill, the rest.)*
 
 ### The inner and outer loops — how a page earns publication
 
@@ -615,6 +627,8 @@ If you're weighing this against retrieval rather than against other wiki tools: 
 | Accumulation effect | none | new sources enrich existing pages |
 | Exploration | keyword search | graph traversal + associative trails (Memex) |
 
+There is now independent, benchmarked evidence that this shape can beat chunk retrieval. A WeChat/Tencent team built the same idea — sources compiled into an interlinked markdown wiki that an agent traverses — and reports it outperforming dense-RAG and graph-RAG baselines by 2.0–8.1 F1 points across three multi-hop QA benchmarks: ["Retrieval as Reasoning: Self-Evolving Agent-Native Retrieval via LLM-Wiki" (arXiv:2605.25480)](https://arxiv.org/abs/2605.25480). **Those are their numbers for their system, not measurements of this repository** — convergent evidence for the approach, not proof of this implementation. Their ablation is the actionable part: removing multi-round traversal costs roughly twice as much F1 as removing the wiki structure itself, and that ordering is what prompted the [GROUND Ladder](#before-the-loops--the-ground-ladder) here.
+
 ---
 
 ## Python tools
@@ -722,6 +736,7 @@ On Windows, after installing Node.js, running the patch script above prepares th
 - [Vannevar Bush's Memex (1945)](https://en.wikipedia.org/wiki/Memex) — associative trails, serendipity, augmenting human thought
 - [Self-Harness (arXiv:2606.09498)](https://arxiv.org/abs/2606.09498) — self-improvement loop. A 3-stage structure that finds weakness patterns in failure records, fixes the authoring guidelines, and adopts only after passing regression verification
 - [Microsoft SkillOpt](https://github.com/microsoft/SkillOpt) (arXiv:2605.23904) — a verification gate that doesn't apply a proposal immediately but accepts it only when the score actually rises on a held-out check task
+- [Retrieval as Reasoning / LLM-Wiki (arXiv:2605.25480)](https://arxiv.org/abs/2605.25480) — an independently built, benchmarked system of the same wiki-not-chunks shape (WeChat/Tencent). Scope of the influence: its ablation ordering (traversal > structure > error repair) prompted the GROUND Ladder; its Error-Book constraint injection was reviewed and declined
 - [SamurAIGPT/llm-wiki-agent](https://github.com/SamurAIGPT/llm-wiki-agent) — the original project
 
 ## License

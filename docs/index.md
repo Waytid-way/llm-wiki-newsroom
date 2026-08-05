@@ -14,7 +14,7 @@ schema_description: >-
   is never the one that reviews it. Four loops hold it together, including a
   reground loop that pulls published pages back in before they go stale.
   Local-first, plain markdown and git, a structured alternative to RAG.
-schema_keywords: "LLM wiki, Karpathy LLM Wiki, RAG alternative, harness engineering, knowledge factory, software factory, four loops, reground loop, inner loop, outer loop, meta loop, multi-agent, AI agents, agentic AI, Claude Code, Claude skills, knowledge base, knowledge graph, second brain, personal knowledge management, PKM, digital garden, Obsidian, semantic search, Memex, contradiction tracking, self-evolving guidelines, writer reviewer separation, context isolation, local-first"
+schema_keywords: "LLM wiki, Karpathy LLM Wiki, RAG alternative, harness engineering, knowledge factory, software factory, four loops, reground loop, inner loop, outer loop, meta loop, GROUND ladder, retrieval as reasoning, multi-agent, AI agents, agentic AI, Claude Code, Claude skills, knowledge base, knowledge graph, second brain, personal knowledge management, PKM, digital garden, Obsidian, semantic search, Memex, contradiction tracking, self-evolving guidelines, writer reviewer separation, context isolation, local-first"
 hreflang_en: "https://alfadur7.github.io/llm-wiki-newsroom/"
 hreflang_ko: "https://alfadur7.github.io/llm-wiki-newsroom/ko/"
 ---
@@ -67,6 +67,8 @@ The rest — the knowledge graph, contradiction tracking, cascading updates, pla
 
 To be precise, this doesn't do away with retrieval. Karpathy framed the wiki as a compile step for knowledge, not as a replacement for search, and the optional local search used here is itself a BM25 + vector hybrid. What changes is *what* gets retrieved: a few already-structured, cross-referenced pages instead of raw chunks reassembled from scratch on every query.
 
+There is now independent, benchmarked evidence for this shape: a WeChat/Tencent team built the same idea — sources compiled into an interlinked wiki that an agent traverses — and reports it beating dense-RAG and graph-RAG baselines on three multi-hop QA benchmarks (["Retrieval as Reasoning", arXiv:2605.25480](https://arxiv.org/abs/2605.25480)). Their numbers describe their system, not this one — convergent evidence for the approach, not a measurement of this repo.
+
 ## Highlights
 
 - **Persistent, plain-markdown knowledge base** — your "second brain" as version-controlled `.md` files, not a vendor silo. Doubles as an [Obsidian](https://obsidian.md) vault.
@@ -89,7 +91,7 @@ A wiki is the second case by construction: today's page is tomorrow's input, so 
 
 - **New.** The repository went public on 2026-06-26. Treat it as the idea plus a small reproducible example, not a battle-tested product.
 - **The shipped corpus is deliberately small** — 15 pages on the open-source-AI debate. The graph screenshot above comes from a larger private instance (~2,300 nodes), shown for scale; that one you can't verify from the repo.
-- **The differentiators are hypotheses.** Writer–reviewer separation and the self-evolving loop are argued from design, not from published A/B numbers. They're being measured, not claimed as settled.
+- **The differentiators are hypotheses.** Writer–reviewer separation and the self-evolving loop are argued from design, not from published A/B numbers. They're being measured, not claimed as settled. The newest mechanism — a ladder governing how much the writer reads before drafting — ships with provisional stopping rules and no measurements yet.
 - **"No API keys" covers the tooling, not the agent.** Build, lint, and search are local Python; the reading and writing happen through your own Claude Code access.
 - **Korean mode localizes prose, not schema.** `WIKI_LANG=ko` translates body text and field values; the frontmatter keys and section headers the tools parse stay English, and the shipped example corpus is English throughout.
 
