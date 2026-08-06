@@ -226,9 +226,22 @@ CLAUDE.md "Human Reviewer Gate"."""
 
 STUB_MSG_TMPL = """[stub-advisory] STUB MUTATION DETECTED — {rel}
 
-L2-2 stub created/edited. Two follow-up obligations:
+L2-2 stub created/edited. Three follow-up obligations:
 
-1. BUILD — the pipeline artifacts are stale:
+1. RECONNECT — the links coming *into* a new hub do not live in this file. Appending
+   `[[<hub>]]` to the citing source's `## Connections` and syncing the hub's own
+   `sources:` are two separate edits, and two commands do them as a pair
+   (entities·concepts only — `structure --fix` does not scan timelines):
+     python tools/lint.py graph structure --fix   # source `## Connections` <- [[hub]]
+     python tools/lint.py graph orphans --fix     # hub `sources:` <- source
+   The first prints this follow-up itself on success. Stopping after it leaves the hub's
+   `sources:` out of step with the link just appended — and if that field was empty,
+   `hub schema` FAILs too. Both commands are corpus-wide — neither takes a target, so
+   one run can rewrite several source pages.
+   Skip the pair and the new stub escapes as an isolated hub all the way to batch lint.
+   Procedure and where it sits in the cycle: .claude/commands/wiki-ingest.md step 10.
+
+2. BUILD — the pipeline artifacts are stale:
    - wiki/_backlinks.json (incoming wikilink index)
    - graph/_clusters.json·_graph.json (Leiden topology)
    - wiki/index.md (auto stats) · wiki/sources/_catalog*.md
@@ -237,7 +250,7 @@ L2-2 stub created/edited. Two follow-up obligations:
    — backlinks not refreshed after stub creation, misjudged as orphan despite 4 wikilink refs).
    Build is idempotent — for a stub batch in the same turn, one run after the batch suffices.
 
-2. DESK VERIFY₂ — an L2-2 stub carries a "Copy Editor + Desk" VERIFY obligation in the Layer×Cycle matrix.
+3. DESK VERIFY₂ — an L2-2 stub carries a "Copy Editor + Desk" VERIFY obligation in the Layer×Cycle matrix.
    After build·lint (Copy Editor VERIFY₁) completes, invoke the Desk:
      Agent({{ subagent_type: 'desk', prompt: '... desk VERIFY₂ of new L2-2 stub ...' }})
    Byproduct stubs (byproducts of another cycle, e.g. broken-link remediation) get the same treatment —
