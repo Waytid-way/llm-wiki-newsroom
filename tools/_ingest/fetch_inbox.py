@@ -277,13 +277,17 @@ def fetch_one(
                 return f"SKIPPED:duplicate-of-{sniffed[1]}", None
             return "OK", sniffed[1]
 
-        _final_url, title, description, content = fetch_html(url, timeout=15)
-        dup = dedup_index.get(canonicalize_url(_final_url))
+        final_url, title, description, content = fetch_html(url, timeout=15)
+        dup = dedup_index.get(canonicalize_url(final_url))
         if dup:
             return f"SKIPPED:duplicate-of-{dup}", None
         if (not content) or len(content) < 100:
             return f"FAILED:short-content({len(content)}chars)", None
-        path = save_markdown(url, title, description, content, ingest_meta=meta)
+        # Save under the redirect-resolved URL too — dedup judges on final_url,
+        # so saving the original leaves the keys mismatched and the same article
+        # re-enters through the other URL. (The Wayback recovery path returns the
+        # original url from fetch_html, so archive.org does not leak in here.)
+        path = save_markdown(final_url, title, description, content, ingest_meta=meta)
         return "OK", path
     except UnsafeURLError as e:
         return f"FAILED:BLOCKED({e})", None

@@ -120,7 +120,7 @@ In Claude Code, typing a `/`-prefixed command like `/wiki-ingest` runs the match
 | Command | Arguments | Description | Example |
 |--------|------|------|------|
 | `/wiki-discover` | `<seed \| --random \| --surprising \| --gaps [<slug>]>` | Unexpected connections within 2 hops from a seed (or random seed), or auto-ranking of hubs that bridge clusters | `/wiki-discover Meta` |
-| `/wiki-trail` | `<create\|follow\|list> [args]` | Build and save a 5–10 step page path that follows a single topic | `/wiki-trail create open source AI definition` |
+| `/wiki-trail` | `<create\|follow\|list> [args]` | Build and save a 5–12 step page path that follows a single topic | `/wiki-trail create open source AI definition` |
 | `/wiki-timeline` | `<entity> [year]` | A chronological storyline of a person's or company's events sorted by year | `/wiki-timeline Meta 2024` |
 
 You don't have to memorize the slash commands — you can request the same tasks in natural language, and Claude Code figures out the intent and maps it to the right command.
@@ -243,7 +243,7 @@ Having the LLM read every page in full to answer a question is costly, and an AI
 - **Bridge-hub ranking (`--surprising`)**: automatically selects the pages that **most bridge** different topic clusters. The score rises the more often it appears on shortest paths, the more its neighbors span multiple clusters, and the less it's so famous as to seem "obvious." The "unexpected centers" are output as a top N even with no seed input.
 
 #### Associative trails (Memex Trail)
-[Vannevar Bush's Memex](https://en.wikipedia.org/wiki/Memex) (1945) proposed knowledge exploration that follows trails between pieces of information. `/wiki-trail` builds and saves a **path of 5–10 pages woven in order, with commentary at each step**, for a given topic. Good for sharing with a team: "to understand this topic, read it in this order."
+[Vannevar Bush's Memex](https://en.wikipedia.org/wiki/Memex) (1945) proposed knowledge exploration that follows trails between pieces of information. `/wiki-trail` builds and saves a **path of 5–12 pages woven in order, with commentary at each step**, for a given topic. Good for sharing with a team: "to understand this topic, read it in this order."
 
 #### Timeline
 Specifying an entity and a year like `/wiki-timeline Meta 2024` generates a **storyline sorted chronologically** of that person's or company's events. It groups by year, combining backlinks and each source's publish date.
@@ -500,16 +500,19 @@ Final result: lint-report.md
 
 | Invocation | What --fix does |
 |------|-------------------|
-| /wiki-lint --fix (= all) | Run all groups' safe auto-fixes in a batch. EDITOR rewrites and SoT JSON regeneration are **excluded** (require explicit invocation) |
+| /wiki-lint --fix (= all) | Run all groups' safe auto-fixes in a batch. Body rewrites are **excluded** (require explicit invocation); the one exception is a stale theme ↔ issue mapping, whose regeneration instruction is included |
 | /wiki-lint graph structure --fix | Auto-add entities mentioned in the body to the source's `## Connections` to reconnect orphan hubs |
 | /wiki-lint graph orphans --fix | Auto-backfill source `## Connections` → hub `sources:` frontmatter |
 | /wiki-lint graph clusters --fix | Recompute graph data (`_graph.json`·`_clusters.json`) to the current wiki state |
+| /wiki-lint graph raw-files --fix | Repair a source's `source_file:` path when it no longer matches the raw file it points at |
 | /wiki-lint hub schema --fix | Auto-fill `type`·`last_updated` in entity·concept·timeline frontmatter |
 | /wiki-lint overview --fix | Reconcile cluster ↔ per-domain overview MD (create missing overviews, delete orphan overviews, with a pre-run confirmation prompt) |
 | /wiki-lint overview <target> --fix | The above + a Claude EDITOR rewrite instruction block for that domain |
 | /wiki-lint contradiction --fix | Reconcile theme ↔ per-theme analysis MD (create missing analyses, delete orphan analyses, with a pre-run confirmation prompt) + insert placeholders for missing H2 |
+| /wiki-lint contradiction &lt;target&gt; --fix | The above + a Claude rewrite instruction block for that theme |
 | /wiki-lint contradiction theme --fix | A Claude instruction block to regenerate the theme ↔ issue mapping SoT (`_contradictions_themes.json`) |
-| Other groups/subcommands --fix | Unsupported (warns, then diagnoses only) |
+| /wiki-lint synthesis\|trail\|timeline &lt;target&gt; --fix | Create the page skeleton if absent, and emit a Claude rewrite instruction block |
+| Any other invocation --fix | A group-level call (`graph --fix`·`hub --fix`) runs that group's fixes listed above; otherwise the flag is silently ignored and only the diagnosis runs |
 
 The confirmation prompt can be bypassed with the `--yes` flag — use it in automated environments after pre-review.
 
@@ -593,7 +596,7 @@ Bridge-hub ranking (--surprising)
 #### `/wiki-trail create|follow|list <topic>`
 
 ```
-create : explore pages related to the topic, build a 5–10 page "reading order" with
+create : explore pages related to the topic, build a 5–12 page "reading order" with
          per-step commentary, and save it to wiki/trails/<slug>.md
 follow : read an existing path in order with per-step commentary
 list   : list the trails under wiki/trails/

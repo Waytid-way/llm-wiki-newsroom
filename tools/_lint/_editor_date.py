@@ -19,6 +19,7 @@ import hashlib
 import re
 import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -93,18 +94,31 @@ def _git_repo_rel(path: Path) -> tuple[str, str] | None:
     per-commit hash lookup miss and fall through to the oldest commit date.
     Resolve both via the file's own directory so the result is independent of
     the caller's cwd or whether it passed an absolute or relative path."""
+    toplevel = _git_toplevel(str(path.parent))
+    if toplevel is None:
+        return None
+    try:
+        rel = path.resolve().relative_to(Path(toplevel).resolve()).as_posix()
+    except (OSError, ValueError):
+        return None
+    return toplevel, rel
+
+
+@lru_cache(maxsize=None)
+def _git_toplevel(directory: str) -> str | None:
+    """Repo toplevel containing `directory`, or None. Cached — every path in a
+    lint run resolves to the same handful of directories, and the `rev-parse`
+    spawn costs more than the `git show` it precedes."""
     try:
         top = subprocess.run(
-            ["git", "-C", str(path.parent), "rev-parse", "--show-toplevel"],
+            ["git", "-C", directory, "rev-parse", "--show-toplevel"],
             capture_output=True, text=True, timeout=5, check=False,
             encoding="utf-8", errors="replace",
         )
         if top.returncode != 0 or not top.stdout.strip():
             return None
-        toplevel = top.stdout.strip()
-        rel = path.resolve().relative_to(Path(toplevel).resolve()).as_posix()
-        return toplevel, rel
-    except (subprocess.SubprocessError, FileNotFoundError, OSError, ValueError):
+        return top.stdout.strip()
+    except (subprocess.SubprocessError, FileNotFoundError, OSError):
         return None
 
 
@@ -155,12 +169,13 @@ def editor_last_commit_date(path: Path) -> str | None:
             return None
 
     # Walk newest→oldest comparing each commit's EDITOR hash with the next.
+    # The older hash carries into the next round as the current one, so each
+    # commit is shown once rather than twice.
+    current_h = _hash_at(commits[0][0])
     for i in range(len(commits) - 1):
-        current_h = _hash_at(commits[i][0])
         older_h = _hash_at(commits[i + 1][0])
-        if current_h is None or older_h is None:
-            continue
-        if current_h != older_h:
+        if current_h is not None and older_h is not None and current_h != older_h:
             return commits[i][1]
+        current_h = older_h
     # Whole history has a single EDITOR hash — oldest commit introduced it.
     return commits[-1][1]

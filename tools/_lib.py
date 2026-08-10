@@ -85,6 +85,22 @@ def safe_slug_path(parent: Path, slug: str) -> Path:
     return parent / f"{slug}.md"
 
 
+def cli_slug_path(parent: Path, slug: str) -> Path | None:
+    """CLI-argument slug → `parent/<slug>.md`, or None after a stderr message.
+
+    `safe_slug_path` raises — right for JSON and internal callers, but a
+    traceback for something the user typed. Argument-taking sites use this and
+    exit 2, matching the sibling check (file absent → 2). Not usable for
+    directories whose slugs are not kebab-case (`timelines/` holds entity and
+    concept stems).
+    """
+    try:
+        return safe_slug_path(parent, slug)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return None
+
+
 def atomic_write_if_changed(path: Path, content: str, *, encoding: str = "utf-8") -> bool:
     """Atomic write only if on-disk content differs. Returns True if a write
     occurred, False on a no-op.

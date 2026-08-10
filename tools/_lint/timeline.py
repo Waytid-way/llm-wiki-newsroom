@@ -178,6 +178,13 @@ def run(target: str | None = None, fix: bool = False, **_kwargs) -> int:
     if target:
         slug = target.removesuffix(".md")
         path = TIMELINES_DIR / f"{slug}.md"
+        # A timeline slug is an entity/concept stem (`AgenticAI`), so
+        # `safe_slug_path`'s kebab-case check would reject every valid input.
+        # What has to be blocked is `../` escape, so check directory containment
+        # only.
+        if path.parent.resolve() != TIMELINES_DIR.resolve():
+            print(f"ERROR: unsafe target: {target!r}", file=sys.stderr)
+            return 2
         if fix and not path.is_file():
             atomic_write_text(path, _skeleton(slug))
             print(f"Created skeleton: {path.as_posix()}")

@@ -65,6 +65,7 @@ from _lib import (  # noqa: E402
     _build_id_map,
     atomic_write_if_changed,
     parse_frontmatter as _parse_fm,
+    slug_only,
 )
 
 
@@ -283,7 +284,10 @@ def run() -> None:
         for m in _LABELED_LINK_RE.finditer(content):
             labeled_spans.add(m.start())
             raw = m.group(1).strip()
-            target = id_map.get(raw)
+            # An anchor link (`[[Hub#Section]]`) is not in id_map verbatim —
+            # without a second lookup through the anchor-normalization SoT the
+            # edge is lost entirely and misreported as dangling.
+            target = id_map.get(raw) or id_map.get(slug_only(raw))
             if not target:
                 orphan_targets[raw] += 1
                 continue
@@ -297,7 +301,7 @@ def run() -> None:
             if m.start() in labeled_spans:
                 continue
             raw = m.group(1).strip()
-            target = id_map.get(raw)
+            target = id_map.get(raw) or id_map.get(slug_only(raw))
             if not target:
                 orphan_targets[raw] += 1
                 continue

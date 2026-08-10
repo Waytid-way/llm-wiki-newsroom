@@ -94,9 +94,12 @@ Usage:
                          block (authoring handoff w/ roster completion criteria).
   trail <slug> --fix   → same as synthesis (skeleton + Claude rewrite block).
   all --fix            → mechanical repairs that each supporting group allows;
-                         overview Claude rewrite + contradiction theme regeneration
-                         NOT included (probabilistic-reasoning triggers must be
-                         requested explicitly)
+                         the overview Claude rewrite is NOT included (a
+                         probabilistic-reasoning trigger must be requested
+                         explicitly). Contradiction theme regeneration IS
+                         reached when the stale-themes gate fires — only the
+                         explicit `contradiction theme` sub is held back
+                         (EXPLICIT_FIX_ONLY)
 
 Exit codes:
   0 — every group passes

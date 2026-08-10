@@ -11,7 +11,9 @@ import json
 import re
 import sys
 
-LINT_RE = re.compile(r"tools/lint\.py.*(--yes|--fix)")
+# Accept either separator — PowerShell tab-completes `tools\lint.py`, and a
+# forward-slash-only pattern would let that invocation through unguarded.
+LINT_RE = re.compile(r"tools[/\\]lint\.py.*(--yes|--fix)")
 YES_RE = re.compile(r"--yes\b|\s-y\b")
 MARKER_RE = re.compile(r"CHAIN-REQUIRED|STALE --fix chain|ACTION REQUIRED|Claude rewrite instruction block")
 

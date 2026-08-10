@@ -518,30 +518,9 @@ def run(json_out: bool = False, fix: bool = False) -> int:
         print("     Informational — severing the single edge would split the two domains. Reinforce with cross-references if the relation is real, or accept it if they are genuinely distant domains.")
         print()
 
-    if not issues_total:
-        print("OK — no actionable cluster issues.")
-        if orphan_labels or fragile:
-            print()
-            _print_orphan_labels()
-            _print_fragile_bridges()
-        return 0
-
-    if isolated:
-        print(f"[A] Isolated hubs (no edges, excluded from clustering) — {len(isolated)}:")
-        for h in isolated[:20]:
-            print(f"     {h}")
-        if len(isolated) > 20:
-            print(f"     ... and {len(isolated) - 20} more. Add [[wikilinks]] from sources or hubs.")
-        print()
-
-    if small:
-        print(f"[B] Small clusters (size < {MIN_SIZE}) — {len(small)}:")
-        for c in small:
-            print(f"     #{c['id']} [{c['slug']}] size={c['size']}: {', '.join(c['member_labels'][:5])}")
-        print("     Tuning suggestion: consider merging with a neighbor, or adjusting resolution.")
-        print()
-
-    if mixed:
+    def _print_mixed_clusters() -> None:
+        if not mixed:
+            return
         print(f"[C] Mixed clusters (coherence='mixed', size>={MIN_MIXED_SIZE}) — {len(mixed)}:")
         for c in mixed:
             tags = ", ".join(f"{t}({n})" for t, n in c["top_tags"][:3])
@@ -560,6 +539,32 @@ def run(json_out: bool = False, fix: bool = False) -> int:
             )
         print(f"     Action: refine anchor_members in {LABELS_PATH}, or accept as cross-cutting theme.")
         print()
+
+    if not issues_total:
+        print("OK — no actionable cluster issues.")
+        if orphan_labels or mixed or fragile:
+            print()
+            _print_orphan_labels()
+            _print_mixed_clusters()
+            _print_fragile_bridges()
+        return 0
+
+    if isolated:
+        print(f"[A] Isolated hubs (no edges, excluded from clustering) — {len(isolated)}:")
+        for h in isolated[:20]:
+            print(f"     {h}")
+        if len(isolated) > 20:
+            print(f"     ... and {len(isolated) - 20} more. Add [[wikilinks]] from sources or hubs.")
+        print()
+
+    if small:
+        print(f"[B] Small clusters (size < {MIN_SIZE}) — {len(small)}:")
+        for c in small:
+            print(f"     #{c['id']} [{c['slug']}] size={c['size']}: {', '.join(c['member_labels'][:5])}")
+        print("     Tuning suggestion: consider merging with a neighbor, or adjusting resolution.")
+        print()
+
+    _print_mixed_clusters()
 
     if unlabeled:
         print(f"[D] Unlabeled clusters (no match in {LABELS_PATH}) — {len(unlabeled)}:")

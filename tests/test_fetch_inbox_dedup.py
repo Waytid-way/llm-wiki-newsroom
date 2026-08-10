@@ -82,5 +82,26 @@ def test_html_no_false_skip_when_final_url_novel(monkeypatch):
     assert path == saved
 
 
+def test_html_saves_under_redirect_resolved_url(monkeypatch):
+    """The save URL must be the same one dedup judged on — otherwise the stored
+    key never matches and the article re-enters through its original URL."""
+    seen = {}
+    monkeypatch.setattr(F, "unwrap_share_wrapper", lambda u: u)
+    monkeypatch.setattr(F, "is_pdf_url", lambda *a, **k: False)
+    monkeypatch.setattr(A, "is_pdf_url", lambda *a, **k: False)
+    monkeypatch.setattr(A, "safe_get_stream", lambda *a, **k: _FakeStream("https://x.com/a"))
+    monkeypatch.setattr(
+        F, "fetch_html",
+        lambda url, timeout=15: ("https://final.com/article", "T", "D", "x" * 200),
+    )
+    monkeypatch.setattr(
+        F, "save_markdown",
+        lambda url, *a, **k: seen.setdefault("url", url) and None or Path("raw/x.md"),
+    )
+    status, _ = F.fetch_one("https://short.link/xyz", dedup_index={})
+    assert status == "OK"
+    assert seen["url"] == "https://final.com/article"
+
+
 def _fail_on_save():
     raise AssertionError("save_* must not be called when the final URL is a duplicate")

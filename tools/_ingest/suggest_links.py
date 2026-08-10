@@ -222,7 +222,9 @@ def find_unlinked(
     via_alias: dict[str, str] = {}  # stem → alias that matched
 
     # Pass 1: match by file stem (existing behaviour)
-    for stem in hub_stems:
+    # Sorted traversal — set order varies per run, which shifts the output order
+    # of tied candidates and the `--top` cutoff (same input, different advice).
+    for stem in sorted(hub_stems):
         if stem in already_linked_norm:
             continue
         if re.match(r"^[A-Za-z0-9]+$", stem):

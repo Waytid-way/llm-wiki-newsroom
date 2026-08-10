@@ -35,7 +35,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, WIKILINK_STEM_RE, WIKILINK_ANY_RE, MARKUP_LEAK_RE, atomic_write_text, parse_frontmatter, read_text_cached, safe_slug_path, strip_code, strip_frontmatter  # noqa: E402
+from _lib import WIKI, WIKILINK_STEM_RE, WIKILINK_ANY_RE, MARKUP_LEAK_RE, atomic_write_text, cli_slug_path, parse_frontmatter, read_text_cached, strip_code, strip_frontmatter  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))  # tools/_lint/ — for _manifest_counts (sibling)
 from _advisory_common import L1_MIN_SLUG_LEN, iter_md, mark as _mark, print_rewrite_block  # noqa: E402
 
@@ -323,13 +323,10 @@ def run(target: str | None = None, fix: bool = False, **_kwargs) -> int:
 
     if target:
         slug = target.removesuffix(".md")
-        path = SYNTHESES_DIR / f"{slug}.md"
+        path = cli_slug_path(SYNTHESES_DIR, slug)  # gate before read *and* write
+        if path is None:
+            return 2
         if fix and not path.is_file():
-            try:
-                path = safe_slug_path(SYNTHESES_DIR, slug)  # gate slug→path before write
-            except ValueError as exc:
-                print(f"ERROR: {exc}", file=sys.stderr)
-                return 2
             atomic_write_text(path, _skeleton(slug))
             print(f"Created skeleton: {path.as_posix()}")
             _print_rewrite_block(slug, path, exists=False)

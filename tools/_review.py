@@ -14,10 +14,15 @@ from _lib import atomic_write_text
 
 
 def _load(path: Path) -> dict:
+    """Watermark JSON as a dict. Read failure, corruption, and a non-dict root
+    all give an empty dict — callers call `.get()` straight away, so returning a
+    list/str root as-is takes down `mine_feedback`/`mine_failures` with an
+    AttributeError."""
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return {}
+    return data if isinstance(data, dict) else {}
 
 
 def read_watermark(path: Path) -> str | None:

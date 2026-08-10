@@ -61,9 +61,9 @@ Per-layer additional fields (L2-1 source's `source_url`·`source_file`·`publish
 
 ## Root Meta Files Exception
 
-The meta files at the `wiki/` root (`index.md`·`overview.md`·`contradiction.md`·`log.md`·`lint-report.md`) start directly with `# Title`, **without frontmatter**.
+The meta files at the `wiki/` root (`index.md`·`overview.md`·`contradiction.md`) start directly with `# Title`, **without frontmatter**.
 
-**Reason**: root files are not targets of `tools/build.py` or the `_backlinks.json` scanner (which process only sub-directories), so their frontmatter would not be functionally consumed.
+**Reason**: the `_backlinks.json` scanner walks only sub-directories, so a root file's frontmatter would not be functionally consumed. (`index.md` and `overview.md` *are* written by `tools/build.py` — but as generated bodies, which read no frontmatter.)
 
 `last_updated` management is handled instead by the re-aggregation event records in `log.md`.
 

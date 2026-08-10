@@ -43,6 +43,8 @@ import re
 import sys
 from collections import Counter, deque
 from datetime import datetime, timezone
+from functools import lru_cache
+from itertools import zip_longest
 from pathlib import Path
 from typing import Callable
 from urllib.parse import unquote, urlparse
@@ -163,17 +165,32 @@ def build_vocabulary(hub_fm: dict[str, dict] | None = None) -> dict[str, int]:
     return vocab
 
 
+@lru_cache(maxsize=None)
+def _term_matcher(term: str) -> re.Pattern | None:
+    """Word-boundary matcher for `term`, or None when substring is right.
+
+    A pure-ASCII term needs boundaries — short labels sit inside unrelated
+    English words (`osi` in *position*, `meta` in *metadata*) and would score
+    every crawled page as relevant. Hangul-bearing terms keep substring
+    matching: Korean has no such word boundary, and a particle attaches
+    directly to the noun (`은행이`), which a boundary would reject.
+    """
+    if any(ord(c) > 0x7F for c in term):
+        return None
+    return re.compile(rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])")
+
+
 def score_relevance(text: str, vocab: dict[str, int]) -> tuple[int, list[str]]:
     """Sum the weights of distinct vocabulary terms occurring in `text`.
 
-    Returns `(score, matched_terms)`. Matching is case-insensitive substring
-    — Korean labels rarely produce spurious substrings, and dropping <3-char
-    terms removes the worst English false positives."""
+    Returns `(score, matched_terms)`. Matching is case-insensitive: ASCII terms
+    match on word boundaries, Hangul-bearing terms as substrings."""
     haystack = text.lower()
     score = 0
     hits: list[str] = []
     for term, weight in vocab.items():
-        if term in haystack:
+        pat = _term_matcher(term)
+        if pat.search(haystack) if pat else term in haystack:
             score += weight
             hits.append(term)
     return score, hits
@@ -466,6 +483,9 @@ def main() -> int:
                          "(single-source·stale-hub) — the gap-fill entry point")
     ap.add_argument("--gap-type", choices=list(HUB_GAP_TYPES), default=None,
                     help="with --gap-seed: restrict to one hub-gap type")
+    ap.add_argument("--gap-limit", type=int, default=5,
+                    help="with --gap-seed: hubs considered per gap type "
+                         "(default 5; separate from the --max-pages fetch budget)")
     ap.add_argument("--max-pages", type=int, default=5, help="total pages fetched (default 5)")
     ap.add_argument("--max-depth", type=int, default=0,
                     help="link-hops to follow beyond seeds (default 0 = seeds only)")
@@ -483,11 +503,18 @@ def main() -> int:
     if args.gap_seed:
         gap_types = (args.gap_type,) if args.gap_type else HUB_GAP_TYPES
         try:
-            gap_seed_map = seeds_from_gaps(gap_types, limit=args.max_pages)
+            # How many gaps to look at and how many pages to fetch are separate
+            # budgets — tying them means lowering --max-pages also shrinks the
+            # set of gaps considered.
+            per_type = {gt: seeds_from_gaps((gt,), limit=args.gap_limit) for gt in gap_types}
         except RuntimeError as e:
             print(f"ERROR: gap diagnosis unavailable — {e}", file=sys.stderr)
             return 2
-        seeds = [u for urls in gap_seed_map.values() for u in urls]
+        gap_seed_map = {h: u for m in per_type.values() for h, u in m.items()}
+        # Round-robin across types — a flat concat starves the trailing type
+        # (stale-hub) entirely once the fetch budget cuts the list off.
+        type_seeds = [[u for urls in m.values() for u in urls] for m in per_type.values()]
+        seeds = [u for group in zip_longest(*type_seeds) for u in group if u]
         if not seeds:
             print("No hub-scoped Track-A gaps with recoverable seed URLs "
                   "(single-source·stale-hub). Nothing to crawl.")

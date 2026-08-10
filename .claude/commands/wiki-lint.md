@@ -182,7 +182,7 @@ Per-target detail requirements to follow when authoring `/wiki-lint [--fix]` res
 
 ### Target Groups
 
-These requirements apply only to the **two target-based groups (`overview`·`contradiction`)**. Other groups (`graph`·`hub`·`meta`·`theme`) have few files or their own structure, and are outside these requirements.
+These requirements apply only to the **two groups that emit symmetric per-target metrics (`overview`·`contradiction`)** — several other groups also take a target, but none pairs off against another this way. The rest (`graph`·`hub`·`meta`·`source`·`synthesis`·`trail`·`timeline`·`staleness`) have few files or their own structure, and are outside these requirements.
 
 ### Required per-target Drift Block
 
@@ -574,7 +574,7 @@ The same id may appear in multiple themes' `claim_ids`. Multi-assign only claims
 | Criterion | Phase 1 (Filter) | Phase 2 (Converge) |
 |---|---|---|
 | **Preliminary/core theme lower bound** | 2 | **5** (core-issue exception — Core Principle 5) |
-| **Preliminary/core theme upper bound** | No limit | **50 advisory** (single-axis exemption always active; the body is a 7–13-bullet selection) |
+| **Preliminary/core theme upper bound** | No limit | **50 advisory** (single-axis exemption always active; the body's `## Representative Evidence` is a 5–7-bullet authoring target inside the lint S2 band of 3–7, upper bound strict) |
 | **Total theme count upper bound** | No limit | **15 recommended (soft)** — including `other-fragmentary`. Adding a new theme slug is a dual-approval gate (Editor-in-Chief 1st + wiki operator 2nd) |
 | **`other-fragmentary`** | Usable | Always exists (empty claim_ids allowed) |
 

@@ -297,11 +297,11 @@ If the AUTO:MEMBERS/AUTO:SOURCES blocks diverge greatly from the git HEAD versio
 
 3-tier thresholds (centrally managed as constants in `tools/_lint/overview.py`):
 
-| Tier | Condition (any one) | Output |
+| Tier | Condition | Output |
 |---|---|---|
-| 🟢 stable | jaccard ≥ 0.85 · delta ≤ 15% · top10_new ≤ 2 | silent |
-| 🟡 drift | jaccard 0.70–0.85 · delta 15–30% · top10_new 3–5 | `[AUTO drift] ... 🟡 drift — EDITOR re-review recommended` |
-| 🔴 rewrite | jaccard < 0.70 · delta > 30% · top10_new ≥ 6 | `[AUTO drift] ... 🔴 rewrite — /wiki-lint overview <slug> --fix recommended` |
+| 🟢 stable | all of: jaccard ≥ 0.85 · delta ≤ 15% · top10_new ≤ 2 | silent |
+| 🟡 drift | any of: jaccard 0.70–0.85 · delta 15–30% · top10_new 3–5 | `[AUTO drift] ... 🟡 drift — EDITOR re-review recommended` |
+| 🔴 rewrite | any of: jaccard < 0.70 · delta > 30% · top10_new ≥ 6 | `[AUTO drift] ... 🔴 rewrite — /wiki-lint overview <slug> --fix recommended` |
 
 Reason it is not incorporated as a Rubric criterion: it is **change-magnitude monitoring**, not quality evaluation, so it sits as a separate advisory layer. No effect on the exit code. Silently skipped if the file is not in git HEAD (a new file) or has no AUTO block at all.
 

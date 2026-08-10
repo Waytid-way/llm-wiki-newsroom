@@ -59,6 +59,10 @@ def _load_json(path: Path) -> tuple[object | None, str | None]:
         return json.loads(path.read_text(encoding="utf-8")), None
     except json.JSONDecodeError as e:
         return None, f"{path}: invalid JSON — {e}"
+    except (OSError, UnicodeDecodeError) as e:
+        # Read/decode failure onto the guided path too — letting it propagate
+        # gives a traceback instead of the exit-2 message.
+        return None, f"{path}: unreadable — {e}"
 
 
 def _claims_last_change_date() -> str | None:

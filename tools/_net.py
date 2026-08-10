@@ -257,7 +257,13 @@ def _curl_one_hop(
             if key.lower() == "accept-encoding":
                 continue
             args += ["-H", f"{key}: {value}"]
-        proc = subprocess.run(args, capture_output=True, timeout=timeout + 20, check=False)
+        try:
+            proc = subprocess.run(args, capture_output=True, timeout=timeout + 20, check=False)
+        except subprocess.TimeoutExpired as e:
+            # TimeoutExpired is not an OSError subclass, so it escapes the
+            # documented exception contract and skips the whole fallback chain
+            # (the Wayback tier) instead of advancing to it.
+            raise OSError(f"curl timed out after {timeout + 20}s") from e
         if proc.returncode != 0:
             err = proc.stderr.decode("utf-8", "replace").strip()[:200]
             raise OSError(f"curl exited {proc.returncode}: {err}")
@@ -287,6 +293,10 @@ def _synthesize_response(
     resp = requests.Response()
     resp.status_code = status
     resp._content = body
+    # Mark the body as already consumed — without it `close()` tries to close a
+    # None raw, so the `with curl_get(...)` usage the docstring promises dies
+    # with an AttributeError.
+    resp._content_consumed = True
     resp.url = final_url
     ctype = resp_headers.get("content-type")
     if ctype:

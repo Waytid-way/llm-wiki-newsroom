@@ -1712,7 +1712,11 @@ async function openMetaPanel({ title, typeLabel, typeColor, rawKey, headerHtml }
 // --- cluster select → pin hull + overview panel (root when slug is null) ---
 function selectCluster(slug) {
   selectedCluster = slug;
-  pinnedOverlayKey = null; OVERLAY_HL = null; regionLens = null;  // cluster supersedes overlays
+  // cluster supersedes overlays — clear pathDraw·stepOverlay too. Without those
+  // three the trail·timeline connector lines stay on screen after a cluster is
+  // selected (same set as hideOverlayVisual).
+  pinnedOverlayKey = null; OVERLAY_HL = null; regionLens = null;
+  pathDraw = null; stepOverlay = null; stepIndex = -1;
   document.querySelectorAll('.legend-row.pinned').forEach(r => r.classList.remove('pinned'));
   if (slug) document.querySelectorAll('#legend .legend-row').forEach(r =>
     { if (r.dataset.slug === slug) r.classList.add('pinned'); });

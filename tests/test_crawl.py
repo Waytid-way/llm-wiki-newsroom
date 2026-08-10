@@ -73,6 +73,22 @@ def test_score_relevance_label_beats_tag(vocab):
     assert C.score_relevance("관련 없는 텍스트", vocab)[0] == 0
 
 
+def test_score_relevance_ascii_terms_need_word_boundaries():
+    """An ASCII term must not match inside a longer English word — `osi` sits in
+    *position*, `meta` in *metadata*, and substring matching scored every page."""
+    vocab = {"osi": C.LABEL_WEIGHT, "meta": C.LABEL_WEIGHT}
+    assert C.score_relevance("a strong position on metadata", vocab) == (0, [])
+    score, hits = C.score_relevance("OSI published the definition; Meta disagreed", vocab)
+    assert score == 2 * C.LABEL_WEIGHT
+    assert sorted(hits) == ["meta", "osi"]
+
+
+def test_score_relevance_hangul_terms_stay_substring():
+    """Hangul keeps substring matching — a particle attaches straight onto the
+    noun (`은행이`), which a word boundary would reject."""
+    assert C.score_relevance("은행이 도입", {"은행": C.TAG_WEIGHT})[0] == C.TAG_WEIGHT
+
+
 # ── host allowlist ─────────────────────────────────────────────────────────
 @pytest.mark.parametrize("host,ok", [
     ("etnews.com", True),

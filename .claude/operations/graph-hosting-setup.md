@@ -6,7 +6,7 @@ Cloudflare Pages lets you keep the source repo private while exposing only the b
 
 ## Prerequisites
 
-- Accept that the entire content (including analyses and syntheses) is exposed at a public URL. The single-file build inlines every body, so partial exposure is not possible. A `noindex` tag plus an unguessable slug only blocks search indexing and casual discovery — it is **not** authentication.
+- Accept that the entire content (including analyses and syntheses) is exposed at a public URL. Page bodies are fetched by the browser from a single bundle deployed alongside the page — one file, all-or-nothing, so partial exposure is not possible. A `noindex` tag plus an unguessable slug only blocks search indexing and casual discovery — it is **not** authentication.
 - A free Cloudflare account.
 
 ## Steps

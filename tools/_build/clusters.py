@@ -955,14 +955,11 @@ def _render_stats_block(clusters_data: dict) -> str:
     dates = [d for (_t, _p, _desc, _sf, d, _su) in sources if d and re.match(r"\d{4}-\d{2}-\d{2}", d)]
     date_span = f"{min(dates)[:4]}~{max(dates)[:4]}" if dates else "date unknown"
 
-    # Per-cluster source counts
-    source_assignments = clusters_data.get("source_assignments", {})
+    # Per-cluster source counts — `_group_sources_by_cluster` is the SoT for
+    # membership. Recounting here drops the primary fallback for sources below
+    # the threshold, so the total diverges from the catalog and AUTO:SOURCES.
+    cluster_files, _ = _group_sources_by_cluster(sources, clusters_data)
     threshold = float(clusters_data.get("source_weight_threshold", 0.3))
-    cluster_counts: dict[str, int] = {}
-    for _path, entry in source_assignments.items():
-        for slug, w in entry.get("weights", {}).items():
-            if w >= threshold:
-                cluster_counts[slug] = cluster_counts.get(slug, 0) + 1
     # unique cluster ordering: use clusters list (which is size-desc)
     ordered: list[tuple[str, int]] = []
     seen: set[str] = set()
@@ -971,7 +968,7 @@ def _render_stats_block(clusters_data: dict) -> str:
         if slug in seen:
             continue
         seen.add(slug)
-        ordered.append((c["name"], cluster_counts.get(slug, 0)))
+        ordered.append((c["name"], len(cluster_files.get(slug, []))))
 
     cluster_line = ", ".join(f"**{n}({count})**" for n, count in ordered)
 

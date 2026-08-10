@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, atomic_write_text, parse_frontmatter, read_text_cached, section_body, strip_code, strip_frontmatter  # noqa: E402
+from _lib import WIKI, atomic_write_text, cli_slug_path, parse_frontmatter, read_text_cached, section_body, strip_code, strip_frontmatter  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))  # tools/_lint/ — sibling import
 from _advisory_common import L1_MIN_SLUG_LEN, L1_RAW_SLUG_RE, iter_md, mark as _mark, print_rewrite_block  # noqa: E402
 
@@ -152,7 +152,9 @@ def run(target: str | None = None, fix: bool = False, **_kwargs) -> int:
 
     if target:
         slug = target.removesuffix(".md")
-        path = TRAILS_DIR / f"{slug}.md"
+        path = cli_slug_path(TRAILS_DIR, slug)
+        if path is None:
+            return 2
         if fix and not path.is_file():
             atomic_write_text(path, _skeleton(slug))
             print(f"Created skeleton: {path.as_posix()}")
