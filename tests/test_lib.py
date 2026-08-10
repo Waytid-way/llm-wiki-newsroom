@@ -249,3 +249,37 @@ def test_unresolved_wikilinks_matches_structure_normalization():
     assert _lib.unresolved_wikilinks("[[entities/Meta]]", stems) == ["entities/Meta"]
     # first-seen order, deduplicated
     assert _lib.unresolved_wikilinks("[[B]] [[A]] [[B]]", stems) == ["B", "A"]
+
+
+# --- reject_args: argv guard on entry points that take no arguments ---------
+# A `--help` that is silently swallowed lets the script's own side effects run
+# and return 0, which reads as a pass (2026-08-10: `export.py --help` rewrote
+# 10 wiki-export files).
+
+def test_reject_args_exits_on_unknown_and_help(monkeypatch):
+    monkeypatch.setattr("sys.argv", ["prog", "--bogus"])
+    with pytest.raises(SystemExit) as e:
+        _lib.reject_args("doc")
+    assert e.value.code == 2
+
+    monkeypatch.setattr("sys.argv", ["prog", "--help"])
+    with pytest.raises(SystemExit) as e:
+        _lib.reject_args("doc")
+    assert e.value.code == 0
+
+    monkeypatch.setattr("sys.argv", ["prog"])
+    assert _lib.reject_args("doc") is None  # bare invocation passes through
+
+
+def test_reject_args_wired_inside_main_block_only():
+    """The guard must sit in `__main__`, never inside `run()`/`main()` — a
+    caller importing that function as a library (`build.py` -> `overlays.run()`)
+    would otherwise have its own argv parsed and die on it."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / "tools"
+    for rel in ("export.py", "log_defect.py", "_build/overlays.py", "_ingest/fetch_inbox.py"):
+        lines = (root / rel).read_text(encoding="utf-8").splitlines()
+        guard = [i for i, l in enumerate(lines) if "reject_args(__doc__)" in l]
+        assert len(guard) == 1, f"{rel}: expected exactly one guard call"
+        main_block = [i for i, l in enumerate(lines) if l.startswith("if __name__")]
+        assert main_block and guard[0] > main_block[0], f"{rel}: guard outside __main__"

@@ -44,7 +44,7 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # _ingest/ → tools/ root (shared modules)
 # _lib import also reconfigures stdout/stderr to UTF-8 (Windows cp949 console).
-from _lib import REPO_ROOT, atomic_write_text, canonicalize_url  # noqa: E402
+from _lib import REPO_ROOT, atomic_write_text, canonicalize_url, reject_args  # noqa: E402
 from _net import UnsafeURLError  # noqa: E402
 from _ingest.fetch_article import (  # noqa: E402
     fetch_html,
@@ -374,4 +374,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    reject_args(__doc__)
     sys.exit(main())

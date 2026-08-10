@@ -120,6 +120,27 @@ def atomic_write_if_changed(path: Path, content: str, *, encoding: str = "utf-8"
     atomic_write_text(path, content, encoding=encoding)
     return True
 
+
+def reject_args(doc: str | None = None) -> None:
+    """argv guard for an entry point that takes no arguments — call it as the
+    first line of the `__main__` block.
+
+    With no parsing at all, `--help` and typo'd flags are swallowed and the
+    script's own side effects run anyway (2026-08-10: a `python tools/export.py
+    --help` smoke-run rewrote 10 wiki-export files and returned exit 0, which
+    reads as a pass). argparse exits 2 on an unrecognized argument and 0 on
+    `--help`, both with no side effect.
+
+    It belongs in `__main__`, not inside `run()`/`main()`: a caller importing
+    that function as a library (`build.py` → `overlays.run()`) would otherwise
+    have its own argv parsed and die on it.
+    """
+    import argparse
+    argparse.ArgumentParser(
+        description=doc, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()
+
+
 # Windows cp949 console: printing Korean / en-dash etc. raises
 # UnicodeEncodeError, so reconfigure both stdio streams to UTF-8 at import.
 # Single definition — every tools/ entry point inherits it by importing _lib

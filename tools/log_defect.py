@@ -156,4 +156,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    _lib.reject_args(__doc__)
     raise SystemExit(main())

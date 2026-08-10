@@ -31,7 +31,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib import BASE_URL, GRAPH, REPO_ROOT, STANDALONE_SLUG, WIKI, deeplink_key, graph_deeplink_base, korean_mode, parse_page_meta  # noqa: E402
+from _lib import BASE_URL, GRAPH, REPO_ROOT, STANDALONE_SLUG, WIKI, deeplink_key, graph_deeplink_base, korean_mode, parse_page_meta, reject_args  # noqa: E402
 from _export.site import stage_site  # noqa: E402
 
 OUT = REPO_ROOT / 'wiki-export'
@@ -517,4 +517,5 @@ def main() -> int:
 
 
 if __name__ == '__main__':
+    reject_args(__doc__)
     sys.exit(main())

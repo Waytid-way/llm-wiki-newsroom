@@ -75,6 +75,10 @@ HYSTERESIS_THRESHOLD = 0.5      # Jaccard similarity threshold for treating a ne
                                 # cluster_labels.json; auto-labels (no anchor
                                 # match) are NOT preserved — they're transient
                                 # by design and must re-resolve each build.
+MATCH_THRESHOLD = 0.5           # pass-2 anchor containment floor. A per-label
+                                # override existed but no label ever set it;
+                                # removed 2026-08-10 (git history keeps it if a
+                                # split-theme label needs it again).
 
 
 def _slugify(s: str) -> str:
@@ -224,14 +228,12 @@ def _match_labels(
     cluster-size asymmetry.
 
     Greedy ordering inside each pass: highest-quality match (Jaccard for
-    pass 1, containment for pass 2) wins first. Each community is claimed
-    at most once. Each label is claimed at most once UNLESS it has
-    `multi_match: true` — then multiple communities can share that slug
-    (used when the topology intentionally splits a theme).
+    pass 1, containment for pass 2) wins first. Each community and each
+    label is claimed at most once; a second community matching a taken
+    label falls through to `_auto_label`.
 
-    Per-label `match_threshold` (default 0.5) applies only to pass 2.
+    Pass 2 requires containment >= MATCH_THRESHOLD.
     """
-    default_threshold = 0.5
     assignments: list[dict | None] = [None] * len(communities)
     taken_labels: set[str] = set()
     label_by_slug = {lbl["slug"]: lbl for lbl in labels}
@@ -258,8 +260,7 @@ def _match_labels(
             if assignments[ci] is not None:
                 continue
             lbl = label_by_slug[slug]
-            multi = bool(lbl.get("multi_match", False))
-            if (not multi) and slug in taken_labels:
+            if slug in taken_labels:
                 continue
             anchors = set(lbl.get("anchor_members", []))
             anchor_hits = len(communities[ci] & anchors) if anchors else 0
@@ -270,12 +271,10 @@ def _match_labels(
                 "matched_label_slug": slug,
                 "containment": round(anchor_hits / len(anchors), 3) if anchors else None,
                 "anchor_hits": anchor_hits,
-                "multi_match": multi,
                 "match_method": "hysteresis",
                 "hysteresis_jaccard": round(jaccard, 3),
             }
-            if not multi:
-                taken_labels.add(slug)
+            taken_labels.add(slug)
 
     # Pass 2: Anchor containment for remaining communities.
     candidates: list[tuple[float, int, int, int, int]] = []
@@ -296,12 +295,10 @@ def _match_labels(
         lbl = labels[li]
         if assignments[ci] is not None:
             continue
-        multi = bool(lbl.get("multi_match", False))
-        if (not multi) and lbl["slug"] in taken_labels:
+        if lbl["slug"] in taken_labels:
             continue
-        threshold = float(lbl.get("match_threshold", default_threshold))
-        if containment < threshold:
-            continue  # per-label threshold, keep scanning other (label,community) pairs
+        if containment < MATCH_THRESHOLD:
+            continue  # keep scanning other (label, community) pairs
         assignments[ci] = {
             "slug": lbl["slug"],
             "name": lbl.get("name", lbl["slug"]),
@@ -309,11 +306,9 @@ def _match_labels(
             "matched_label_slug": lbl["slug"],
             "containment": round(containment, 3),
             "anchor_hits": inter,
-            "multi_match": multi,
             "match_method": "anchor",
         }
-        if not multi:
-            taken_labels.add(lbl["slug"])
+        taken_labels.add(lbl["slug"])
 
     return assignments  # may contain None entries for unmatched
 
@@ -707,7 +702,8 @@ def run_catalogs() -> None:
         if slug not in expected_slugs:
             old.unlink()
 
-    # Aggregate hub size per slug (multi_match labels may span communities).
+    # Aggregate hub size per slug — defensive: label matching claims each slug
+    # once and `_auto_label` uniquifies, so a repeat means a collision bug.
     slug_hub_size: dict[str, int] = {}
     for c in clusters_data.get("clusters", []):
         slug_hub_size[c["slug"]] = slug_hub_size.get(c["slug"], 0) + c["size"]
@@ -718,7 +714,7 @@ def run_catalogs() -> None:
     for c in clusters_data.get("clusters", []):
         slug = c["slug"]
         if slug in emitted_slugs:
-            continue  # multi_match: same slug already written
+            continue  # defensive: slug already written (see aggregate note above)
         files = cluster_files.get(slug)
         if not files:
             continue

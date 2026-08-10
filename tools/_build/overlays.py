@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import GRAPH, GRAPH_JSON, TIMELINE_DATE_ONLY_RE, TIMELINE_ENTRY_RE, WIKI, WIKILINK_STEM_RE, atomic_write_if_changed, parse_frontmatter as _parse_fm, section_body, _build_id_map  # noqa: E402
+from _lib import GRAPH, GRAPH_JSON, TIMELINE_DATE_ONLY_RE, TIMELINE_ENTRY_RE, WIKI, WIKILINK_STEM_RE, atomic_write_if_changed, parse_frontmatter as _parse_fm, section_body, reject_args, _build_id_map  # noqa: E402
 
 CONTRA_CLAIMS = WIKI / "contradictions" / "_contradictions.json"
 CONTRA_THEMES = WIKI / "contradictions" / "_contradictions_themes.json"
@@ -298,4 +298,5 @@ def run() -> None:
 
 
 if __name__ == "__main__":
+    reject_args(__doc__)
     run()
