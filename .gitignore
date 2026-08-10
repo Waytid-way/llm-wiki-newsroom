@@ -55,6 +55,13 @@ HANDOFF.md
 # Operator-local GitHub Wiki export — a personal project-management convenience
 # (converter script + its flattened, frontmatter-stripped output), not part of
 # the published corpus. Regenerate anytime with the script below.
+# Only this sub-folder is ignored: the rest of wiki-export/ IS tracked, because
+# README tells the reader to push exactly those files to GitHub and connect them
+# as Claude.ai Project Knowledge — a mirror that documents the artifact but ships
+# none of it leaves them nothing to look at. Nothing keeps it fresh automatically
+# (export is not a build.py phase and no lint checks staleness), so regenerate
+# with `python tools/export.py` when the corpus changes, at the latest before a
+# release.
 tools/export_github_wiki.py
 wiki-export/github-wiki/
 
