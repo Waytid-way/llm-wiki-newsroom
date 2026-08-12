@@ -322,3 +322,59 @@ def test_g2_accepts_plain_name_rejects_evasion_and_bloat():
 
     # anonymous subject → FAIL even in plain text
     assert g2("- [fact] the industry — expects consolidation")[0] is False
+
+
+def test_a2_exempts_plain_speaker_and_fails_broken_link():
+    """A2 judges whether a speaker is named and whether a link resolves — not whether
+    a link is present. A plain-text speaker leaves the denominator (the page may be
+    below the creation threshold); a link to a missing page fails.
+    """
+    cit = _cit_checks()
+    page_index = {"Mozilla": ("entities/Mozilla.md", "entity")}
+
+    def a2(quote):
+        body = f"## Key Quotes\n{quote}\n\n## Connections\n"
+        return cit.evaluate_citation(
+            body, page_index=page_index, section_titles_fn=lambda rel: set()
+        )["a2"]
+
+    # (pass, linked-and-valid, judged) per input class. Every class below was surfaced
+    # by review of this check; the separator rule (a dash after an even-indexed quote
+    # mark) is the only one of four candidates that gets all of them right.
+    cases = [
+        # linked speaker, plain speaker, and the two failure modes
+        ('> "q" — [[Mozilla]]', (True, 1, 1)),
+        ('> "q" — Bruce Perens, OSI co-founder', (True, 0, 0)),
+        ('> "q" — [[Perens]]', (False, 0, 1)),          # broken link (pre-fix: passed)
+        ('> "q" — Mozilla', (False, 0, 1)),             # evasion, as G2 reads the claimant slot
+        # nobody named — none of these may exempt themselves
+        ('> "an unattributed line"', (False, 0, 1)),
+        ('> "an unattributed line" — ', (False, 0, 1)),
+        ('> "the OSD — 26 years old — applies"', (False, 0, 1)),
+        ('> "they call it "open source" — a stretch — at best"', (False, 0, 1)),
+        ('> "q text here" 2024-10-28', (False, 0, 1)),  # hyphen, but after no closing mark
+        ('> "q text here" (op-ed)', (False, 0, 1)),
+        ('> "q text unclosed — [[Mozilla]]', (False, 0, 1)),
+        # a link inside the quotation body is never the speaker
+        ('> "the OSD — 26 years — applies to [[Mozilla]]" — Perens, co-founder', (True, 0, 0)),
+        ('> "— the OSD applies to [[Mozilla]]" — Perens, co-founder', (True, 0, 0)),
+        # …nor may it launder a broken speaker link, or a trailing segment
+        ('> "they call it "open source" — for [[Mozilla]]" — [[Perens]]', (False, 0, 1)),
+        ('> "q" — [[Perens]] — via [[Mozilla]]', (False, 0, 1)),
+        ('> "q" — [[Mozilla]] — 2024-10-28', (True, 1, 1)),
+        # forms that must stay judged: anchor, alias, en dash, hyphen, nested body term
+        ('> "q" — [[Mozilla#Key Quotes]]', (True, 1, 1)),
+        ('> "q" — [[Mozilla|the Mozilla Foundation]]', (True, 1, 1)),
+        ('> "q" – [[Mozilla]]', (True, 1, 1)),
+        ('> "q" - [[Mozilla]]', (True, 1, 1)),
+        ('> "q about "openness" here" — [[Mozilla]]', (True, 1, 1)),
+        # a quoted work title inside the attribution does not swallow it
+        ('> "q" — [[Mozilla]], author of "The OSD"', (True, 1, 1)),
+        ('> "q" — Perens, author of "The OSD"', (True, 0, 0)),
+    ]
+    for quote, expected in cases:
+        assert a2(quote) == expected, quote
+
+    # several quotes in one section are scored per line: of the first four classes,
+    # three are judged (linked·broken·evasion) and one is exempt (plain speaker)
+    assert a2("\n".join(q for q, _ in cases[:4])) == (False, 1, 3)

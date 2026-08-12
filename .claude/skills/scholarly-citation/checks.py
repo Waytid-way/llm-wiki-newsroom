@@ -62,7 +62,25 @@ CLAIMANT_HEAD_MAX = 40
 CITATION_PREFIX_RE = re.compile(r"^-\s*(cites|references|contradicts|defines)\s*:", re.MULTILINE)
 CONNECT_LINE_RE = re.compile(r"^-\s+.+?$", re.MULTILINE)
 QUOTE_LINE_RE = re.compile(r"^>\s+[\"“”].+", re.MULTILINE)
-QUOTE_WITH_SPEAKER_RE = re.compile(r"^>\s+[\"“”].*?—.*?\[\[", re.MULTILINE)
+# A2 speaker attribution — quote marks pair up, so the outermost quotation closes at an
+# **even-indexed** mark. The separator is a dash following one of those, and the
+# attribution is what follows the dash. Each half of that rule earns its place, and the
+# three cheaper rules it replaces each fail a class the corpus can reach: keyed on any
+# dash, a dash inside the quotation passes as an attribution and exempts a quote that
+# names nobody; keyed on the text after the last quote mark, a quoted title inside the
+# attribution (`— [[X]], author of "Y"`) swallows it and reports a linked speaker as
+# unattributed; keyed on a dash after any mark regardless of parity, a nested term
+# (`"they call it "open source" — …`) outranks the real separator and credits a link
+# from inside the quotation as the speaker. The dash class matches the sibling
+# attribution parser (`tools/_lint/cited_speakers.py`). The premise is narrower than
+# "marks pair up": it is that no even-indexed mark other than the outer closer is
+# immediately followed by a dash. An unbalanced mark shifts every later parity, and a
+# nested term that itself opens with a dash satisfies the separator test — measured,
+# both mislabel the attribution, and arriving at a wrong PASS from either additionally
+# needs a wikilink inside the quotation body, which this section's form does not carry.
+QUOTE_MARK_RE = re.compile(r"[\"“”]")
+SPEAKER_DASH_RE = re.compile(r"\s*[—–-]+\s*")
+SPEAKER_LINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 H2_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 # (dormant: G3 keys on the Korean "and" conjunctions 와/및 joining two hubs; never
 #  fires on English prose. An English equivalent would detect "and" between two
@@ -283,17 +301,37 @@ def evaluate_citation(
     a1_pass = True  # advisory — always PASS
 
     # A2 — blockquote speaker attribution in `## Key Quotes` (live English header).
+    # Two things only are decided mechanically: is a speaker named at all, and if one
+    # is linked, does the target exist. Whether a plain-text speaker should have been
+    # linked is not machine-decidable — the org in a role line is not the speaker
+    # (`Matt Garman, AWS CEO`), so name-matching would manufacture misattribution.
+    # Plain-text speakers therefore leave the denominator, and link *validity* is
+    # counted in place of link presence.
     quotes_body = _section_body(body, "## Key Quotes")
     quote_lines = QUOTE_LINE_RE.findall(quotes_body)
-    quote_with_speaker = QUOTE_WITH_SPEAKER_RE.findall(quotes_body)
-    if not quote_lines:
-        a2_pass = True
-        a2_total = 0
-        a2_with = 0
-    else:
-        a2_total = len(quote_lines)
-        a2_with = len(quote_with_speaker)
-        a2_pass = a2_with == a2_total
+    a2_total = 0
+    a2_with = 0
+    for line in quote_lines:
+        attribution = ""
+        for i, mark in enumerate(QUOTE_MARK_RE.finditer(line), 1):
+            if i % 2:
+                continue  # an opening mark — a dash after it sits inside the quotation
+            dash = SPEAKER_DASH_RE.match(line, mark.end())
+            if dash:
+                attribution = line[dash.end():].strip()
+                break
+        if not attribution:
+            a2_total += 1  # nobody named — there is no attribution to exempt
+            continue
+        link = SPEAKER_LINK_RE.search(attribution)
+        if link:
+            a2_total += 1
+            if link.group(1).strip() in page_index:
+                a2_with += 1
+        elif attribution.split(",", 1)[0].strip() in page_index:
+            a2_total += 1  # a plain name that has a page is link evasion, as in G2 (3)
+        # else: plain-text speaker with no page — not judged
+    a2_pass = a2_with == a2_total
 
     # A3 — anchor wikilink validity (`[[<slug>#<section>]]`).
     a3_total = 0

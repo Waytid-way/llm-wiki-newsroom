@@ -26,7 +26,8 @@ last_updated: YYYY-MM-DD    # bump to today's date when the source MD is edited 
   # grade: [fact] primary · [analysis] secondary · [forecast] tertiary
 
 ## Key Quotes
-> "quotation" — [[Speaker]]
+> "quotation" — [[Speaker]]        # the speaker's page exists
+> "quotation" — Speaker, role      # no page — plain text
 
 ## Connections
 - <type>: [[Hub]] — one-line description
@@ -83,7 +84,7 @@ This guide applies at step 4 (authoring the source page) of the 12-step procedur
 2. **Write the frontmatter** — fill in title · type · tags · published · scraped · source_file · source_url (field meanings are in the schema comments above). If `tags` is empty, the source lint T1 hard gate blocks it (consumed as the node badge in the graph browser); candidates are suggested from the `## Connections` hubs by `python tools/_ingest/suggest_tags.py --file wiki/sources/<slug>.md`. The URL SoT convention is in .claude/layers/source.md.
 3. **Write `## Summary`** — a 2–4 sentence English summary.
 4. **Write `## Key Claims` atomic units** — decompose the raw claims into atomic units of the form `[<grade>] <claimant> — content [optional anchor]` (the claimant is an `[[entity]]` or a plain-text real name). The grade judgment, claimant selection, and the anchor convention are in [Authoring Principles](#authoring-principles) and [Decision Trees](#decision-trees-making-ambiguous-cases-deterministic) below.
-5. **Write `## Key Quotes`** — a `> "quotation" — [[Speaker]]` blockquote. The Speaker is an entity wikilink. If the raw has a direct quotation from the speaker themselves, preserve it verbatim (do not replace it with a one-line summary) — a thin section here is the root cause of downstream themes and hubs hallucinating quotations. You may omit the section only when the raw genuinely has no direct quotations (analysis or forecast pieces).
+5. **Write `## Key Quotes`** — a `> "quotation" — Speaker, role` blockquote. Link the speaker when their page exists; when it does not (usually below the [`policies/naming.md`](../policies/naming.md) threshold) the terminal form is plain text plus the role (`— Bruce Perens, OSI co-founder`) — linking a page that does not exist leaves nothing but a broken link. The link target must be the speaker themselves: the speaker of `Matt Garman, AWS CEO` is Matt Garman, not `[[AWS]]`, and a concept hub never speaks. If the raw has a direct quotation from the speaker themselves, preserve it verbatim (do not replace it with a one-line summary) — a thin section here is the root cause of downstream themes and hubs hallucinating quotations. You may omit the section only when the raw genuinely has no direct quotations (analysis or forecast pieces).
 6. **Write `## Connections` citation type prefixes** — for each hub/source link, attach a `<prefix>: [[Hub]] — one-line description`, classified by citation type (`cites:` · `references:` · `contradicts:` · `defines:`). The classification criteria are in [Authoring Principles](#authoring-principles) and [Decision Trees](#decision-trees-making-ambiguous-cases-deterministic) below. `contradicts:` is the single SoT of the theme contradiction DB.
 
 ### Authoring Principles
@@ -292,7 +293,7 @@ For readability, the lint output uses **legacy codes** (G1~G5·C1~C3·A1~A3·S1�
 sources/<slug>.md:
   [Rubric] G1 grade=N/N ✅  G2 claimant=N/N ✅  G3 atomic=N ✅  G4 valid_claimant=N/N ✅  G5 composite=N ✅
   [Rubric] C1 prefix=N/N ✅  C2 ref_ratio=N% ✅  C3 type_hub=N/N ✅
-  [Rubric] A1 anchored=N/M ✅  A2 quote_attr=N/N ✅  A3 valid_anchor=N/N ✅  S1 sections=3/3 ✅  W1 links=N ✅  L1 raw_slugs=0 ✅  F1 last_updated=✅  T1 tags=✅  Sc1 scraped=✅
+  [Rubric] A1 anchored=N/M ✅  A2 quote_attr=N/M ✅  A3 valid_anchor=N/N ✅  S1 sections=3/3 ✅  W1 links=N ✅  L1 raw_slugs=0 ✅  F1 last_updated=✅  T1 tags=✅  Sc1 scraped=✅
 ```
 
 When a cap is exceeded, a token recurs, or consistency is violated, an auxiliary advisory is shown:
@@ -304,7 +305,7 @@ When a cap is exceeded, a token recurs, or consistency is violated, an auxiliary
   [Rubric] L1 raw slug samples: [...]
 ```
 
-- **✅ = PASS**, **⚠️ = FAIL**, **— = exempt** (e.g., A2 for a source with no raw quotations)
+- **✅ = PASS**, **⚠️ = FAIL**, **— = exempt** (e.g., A2 for a source with no raw quotations, or whose quotes all carry a plain-text speaker)
 - PASS condition per metric:
   - **G1**: `grade_marker = N/N` — among `## Key Claims` lines, those matching the grade-marker regex `^-\s*\[(fact|analysis|forecast)\]` (the English grade tokens `[fact]`/`[analysis]`/`[forecast]`) / all claim lines. N/N = 100% PASS; partial match FAILs.
   - **G2**: `claimant_named = N/N` — among `## Key Claims` lines, those naming a claimant right after the grade marker / all claim lines. A `[[<entity>]]` wikilink counts, as does a plain-text name that is not anonymous, not over-long, and not the title of an existing page. N/N = 100% PASS.
@@ -312,7 +313,7 @@ When a cap is exceeded, a token recurs, or consistency is violated, an auxiliary
   - **C1**: `prefix = N/N` — among `## Connections` lines, those matching the `^- (cites|references|contradicts|defines):` regex / all lines. N/N = 100% PASS.
   - **C2**: `ref_ratio = N%` — the share of `references:` prefixes among `## Connections` lines. ≤ 95% PASS (over 95% is an advisory). Exempt (`—`) if there are fewer than 5 lines.
   - **A1**: `anchored = N/M` — among `## Key Claims` `[fact]`/`[analysis]` lines, those with a `[[<slug>#<section>]]` anchor pattern / all `[fact]`/`[analysis]` lines. Advisory — even 0% is PASS (same as Phase 1 Xanadu).
-  - **A2**: `quote_speakers = N/N` — number of `## Key Quotes` blockquotes / of those, the number with a speaker wikilink in `— [[Speaker]]` form. Exempt (`—`) if there are 0 blockquotes.
+  - **A2**: `quote_attr = N/M` — among the denominator (blockquotes that link a speaker + blockquotes naming none), those linked to a target that exists. Plain-text speakers leave the denominator, since whether they should have been linked is not machine-decidable — step 5 owns that judgment, and *blocking* on a broken speaker link is `graph structure`'s job (required). Exempt (`—`) if the denominator is 0.
   - **S1**: `sections = 3/3` — all three headers `## Summary`·`## Key Claims`·`## Connections` present (`## Key Quotes` absent is OK). 3/3 PASS.
   - **W1**: `links ≥ 5` — total wikilinks in the body (frontmatter excluded).
   - **L1**: `raw_slugs = 0` — zero matches for raw-exposed `[[<kebab-case slug of 10+ chars>]]` (without `|`) in the body.

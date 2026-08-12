@@ -66,11 +66,11 @@
       "note": "[[slug#section]] anchor on [fact]·[analysis] lines. 0% also PASS (advisory)."
     },
     "cit.speaker-link": {
-      "name": "Quote speaker wikilink", "dimension": "Anchor", "judge": "A",
-      "algorithm": "evaluate_citation", "comparator": "==", "default_threshold": "quote_total",
+      "name": "Quote speaker attribution", "dimension": "Anchor", "judge": "A",
+      "algorithm": "evaluate_citation", "comparator": "==", "default_threshold": "judged_quote_total",
       "legacy": {"source": "A2"},
       "source": "APA in-text citation", "source_url": "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles",
-      "note": "A ## Key Quotes blockquote carries — ...[[wikilink]] attribution. Section absence exempt."
+      "note": "A ## Key Quotes blockquote names its speaker, wikilinked when that speaker has a page. Denominator = quotes that link a speaker + quotes naming none; the metric scores whether a speaker is named at all and whether the link resolves. A link to a missing page fails. A plain-text speaker is exempt: whether it should have been linked is not machine-decidable, since the org in a role line is not the speaker ('Matt Garman, AWS CEO' is not AWS) and name-matching would manufacture misattribution. Section absence exempt."
     },
     "cit.anchor-valid": {
       "name": "Anchor validity", "dimension": "Anchor", "judge": "A",
