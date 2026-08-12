@@ -63,23 +63,33 @@ CITATION_PREFIX_RE = re.compile(r"^-\s*(cites|references|contradicts|defines)\s*
 CONNECT_LINE_RE = re.compile(r"^-\s+.+?$", re.MULTILINE)
 QUOTE_LINE_RE = re.compile(r"^>\s+[\"“”].+", re.MULTILINE)
 # A2 speaker attribution — quote marks pair up, so the outermost quotation closes at an
-# **even-indexed** mark. The separator is a dash following one of those, and the
-# attribution is what follows the dash. Each half of that rule earns its place, and the
-# three cheaper rules it replaces each fail a class the corpus can reach: keyed on any
-# dash, a dash inside the quotation passes as an attribution and exempts a quote that
-# names nobody; keyed on the text after the last quote mark, a quoted title inside the
-# attribution (`— [[X]], author of "Y"`) swallows it and reports a linked speaker as
-# unattributed; keyed on a dash after any mark regardless of parity, a nested term
-# (`"they call it "open source" — …`) outranks the real separator and credits a link
-# from inside the quotation as the speaker. The dash class matches the sibling
-# attribution parser (`tools/_lint/cited_speakers.py`). The premise is narrower than
-# "marks pair up": it is that no even-indexed mark other than the outer closer is
-# immediately followed by a dash. An unbalanced mark shifts every later parity, and a
-# nested term that itself opens with a dash satisfies the separator test — measured,
-# both mislabel the attribution, and arriving at a wrong PASS from either additionally
-# needs a wikilink inside the quotation body, which this section's form does not carry.
+# **even-indexed** mark. The separator is the first *spaced* dash between such a mark and
+# the next mark, and the attribution is everything after it. Every clause there was bought
+# by a class that a cheaper rule got wrong: keyed on any dash, a dash inside the quotation
+# passes as an attribution and exempts a quote that names nobody; keyed on the text after
+# the last mark, a quoted title in the attribution (`— [[X]], author of "Y"`) swallows it
+# and reports a linked speaker as unattributed; ignoring parity, a nested term
+# (`"they call it "open source" — …`) outranks the real separator and credits a link from
+# inside the quotation as the speaker; requiring the dash to sit *immediately* after the
+# mark, anything between the two (`"…" (emphasis added) — X`, `"…," she said — X`, or a
+# Korean particle) reads as naming nobody; and allowing an unspaced dash, a hyphenated
+# date (`"…" 2024-10-28`) poses as a separator. The dash *character class* matches the
+# sibling parser in `tools/_lint/cited_speakers.py`, which permits an unspaced dash where
+# this does not.
+#
+# The premise is narrower than "marks pair up": it is that no even-indexed mark before the
+# outer closer carries a spaced dash inside its own window. Two things break it — an
+# unbalanced mark shifts every later parity, and in a balanced nested quotation the inner
+# *opening* mark sits at an even index, so a spaced dash within the nested phrase wins.
+# Scarcity is not the backstop: 20 of the 3,198 quote lines in the sibling corpus that
+# shares this schema carry a wikilink inside the quotation body, so the window bound is.
+#
+# Known cost, measured on that corpus: the in-window search is a loosening. 15 lines read
+# differently than under an adjacent-dash rule and every one moves toward PASS or exempt —
+# 4 correctly, while 7 newly credit a concept hub or an employer org as the speaker (the
+# blind spot step 5 forbids editorially and no check can see) and 2 lose a correct FAIL.
 QUOTE_MARK_RE = re.compile(r"[\"“”]")
-SPEAKER_DASH_RE = re.compile(r"\s*[—–-]+\s*")
+SPEAKER_DASH_RE = re.compile(r"\s+[—–-]+\s+")
 SPEAKER_LINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 H2_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 # (dormant: G3 keys on the Korean "and" conjunctions 와/및 joining two hubs; never
@@ -312,11 +322,13 @@ def evaluate_citation(
     a2_total = 0
     a2_with = 0
     for line in quote_lines:
+        marks = list(QUOTE_MARK_RE.finditer(line))
         attribution = ""
-        for i, mark in enumerate(QUOTE_MARK_RE.finditer(line), 1):
+        for i, mark in enumerate(marks, 1):
             if i % 2:
                 continue  # an opening mark — a dash after it sits inside the quotation
-            dash = SPEAKER_DASH_RE.match(line, mark.end())
+            stop = marks[i].start() if i < len(marks) else len(line)
+            dash = SPEAKER_DASH_RE.search(line, mark.end(), stop)
             if dash:
                 attribution = line[dash.end():].strip()
                 break

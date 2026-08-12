@@ -338,9 +338,10 @@ def test_a2_exempts_plain_speaker_and_fails_broken_link():
             body, page_index=page_index, section_titles_fn=lambda rel: set()
         )["a2"]
 
-    # (pass, linked-and-valid, judged) per input class. Every class below was surfaced
-    # by review of this check; the separator rule (a dash after an even-indexed quote
-    # mark) is the only one of four candidates that gets all of them right.
+    # (pass, linked-and-valid, judged) per input class. Every class below was surfaced by
+    # review of this check; the separator rule (the first spaced dash between an
+    # even-indexed quote mark and the next mark) is the only one of five candidates that
+    # gets all of them right — the four it replaces are enumerated in checks.py.
     cases = [
         # linked speaker, plain speaker, and the two failure modes
         ('> "q" — [[Mozilla]]', (True, 1, 1)),
@@ -352,7 +353,7 @@ def test_a2_exempts_plain_speaker_and_fails_broken_link():
         ('> "an unattributed line" — ', (False, 0, 1)),
         ('> "the OSD — 26 years old — applies"', (False, 0, 1)),
         ('> "they call it "open source" — a stretch — at best"', (False, 0, 1)),
-        ('> "q text here" 2024-10-28', (False, 0, 1)),  # hyphen, but after no closing mark
+        ('> "q text here" 2024-10-28', (False, 0, 1)),  # unspaced hyphen is not a separator
         ('> "q text here" (op-ed)', (False, 0, 1)),
         ('> "q text unclosed — [[Mozilla]]', (False, 0, 1)),
         # a link inside the quotation body is never the speaker
@@ -371,6 +372,9 @@ def test_a2_exempts_plain_speaker_and_fails_broken_link():
         # a quoted work title inside the attribution does not swallow it
         ('> "q" — [[Mozilla]], author of "The OSD"', (True, 1, 1)),
         ('> "q" — Perens, author of "The OSD"', (True, 0, 0)),
+        # text between the closing mark and the separator is not "naming nobody"
+        ('> "q" (emphasis added) — [[Mozilla]]', (True, 1, 1)),
+        ('> "q," she said — Perens, co-founder', (True, 0, 0)),
     ]
     for quote, expected in cases:
         assert a2(quote) == expected, quote
