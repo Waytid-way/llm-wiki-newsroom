@@ -359,7 +359,7 @@ A slug is a file stem of `wiki/sources/*.md`.
 ### Diagnosis Mode
 
 Calls `python tools/lint.py source [<target>]` to output:
-- **When a target is specified**: that source's `[Rubric] G1·G2·G3·C1·C2 ...` + `[Rubric] A1·A2·S1·W1·L1`, two lines (Rubric automatic metrics).
+- **When a target is specified**: that source's `[Rubric] G1~G5` + `[Rubric] C1~C3` + `[Rubric] A1~A3·S1·W1·L1·F1·T1·Sc1`, three lines (Rubric automatic metrics).
 - **No target**: diagnose all sources — a one-line summary of Phase 2 schema conformance counts (number of sources with the G1 grade marker / total · number of sources with the C1 prefix / total, etc.) + a top-20 list of non-conformant source slugs.
 
 Required-criterion FAIL = exit 1 (hard mode).

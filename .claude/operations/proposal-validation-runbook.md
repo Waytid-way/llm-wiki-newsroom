@@ -58,7 +58,7 @@ For a rule `lint.py` scores (a `criteria.json` judge:A threshold, a quantitative
 
 ## Tally & Accept
 
-Tally the average defect count for Control vs Treatment per target. **The acceptance rule's SoT is editor-in-chief step 6** — **≥1 improvement on the motivating held-in** ∧ **non-regression** across every slice (motivating·fresh held-in·fixed/fresh held-out) ∧ no page going PASS→FAIL·over-fire. The fresh samples count only as non-regression guards (the improvement verdict is judged on the motivating target). On acceptance, edit the guideline file → [`../agents/editor-in-chief.md`](../agents/editor-in-chief.md) § Guideline Verification Ladder → record `log_defect` `kind:transition` (surface · held-in/out delta · decision) per step 7.
+Tally the average defect count for Control vs Treatment per target, **per slice** (motivating·fresh held-in·fixed/fresh held-out). The improvement verdict is judged on the motivating target, and the rule that decides acceptance from that tally is owned by [`../agents/editor-in-chief.md`](../agents/editor-in-chief.md) step 6. On acceptance, edit the guideline file → the same file § Guideline Verification Ladder → record `log_defect` `kind:transition` (fields per step 7).
 
 ## Pitfalls
 

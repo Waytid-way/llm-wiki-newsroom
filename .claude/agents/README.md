@@ -119,7 +119,7 @@ When the same Rubric/lint criterion FAILs consecutively:
 - **(b) Temporarily concede an advisory Rubric grade** — target PASS on required criteria only, and record the advisory-grade shortfall explicitly in lint-report.
 - **(c) Narrow target scope** — reduce aggregate → a single cluster/theme, and defer the aggregate to the next turn.
 
-The ADAPT count is appended per-turn to the "Iteration log" section of `lint-report.md`. The point at which the report is authored is deferred until after VERIFY passes, because `.claude/hooks/lint-chain-guard.sh` auto-blocks when it detects a chain marker.
+The ADAPT count is managed by the Editor-in-Chief within the turn — `lint-report.md` is regenerated wholesale from `lint.py` stdout on every run, so a mid-turn append to it does not survive. The point at which the report is authored is deferred until after VERIFY passes, because `.claude/hooks/lint-chain-guard.sh` auto-blocks when it detects a chain marker.
 
 ## Authoring Responsibilities (production·verification automation layers)
 

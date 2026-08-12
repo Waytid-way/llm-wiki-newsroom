@@ -145,7 +145,7 @@ You are the Columnist agent. ADAPT mode — address the Desk's qualitative defec
 **Risk — boundary encroachment when external fact-supplementation is needed**:
 Mid-authoring, the need to verify a citation·supplement an external statistic tempts a direct WebSearch.
 
-**Mitigation**: external WebSearch is out of boundary. When needed, escalate to the Editor-in-Chief → the Editor-in-Chief spawns the Reporter → resume authoring on receiving the result. **The ADAPT counter is managed solely by the Editor-in-Chief** (counting one bundle of mid-cycle escalation as a single ADAPT, appended per-turn to the `lint-report.md` "Iteration log" — the procedure SoT is [`agents/README.md` "Standard ADAPT chain"](README.md#standard-adapt-chain-l2-3l2-4-content)).
+**Mitigation**: external WebSearch is out of boundary. When needed, escalate to the Editor-in-Chief → the Editor-in-Chief spawns the Reporter → resume authoring on receiving the result. **The ADAPT counter is managed solely by the Editor-in-Chief** (counting one bundle of mid-cycle escalation as a single ADAPT — the procedure SoT is [`agents/README.md` "Standard ADAPT chain"](README.md#standard-adapt-chain-l2-3l2-4-content)).
 
 **Risk — AUTO block encroachment**:
 Accidentally editing an AUTO block (between `<!-- AUTO:* BEGIN/END -->`) while authoring the EDITOR block.
