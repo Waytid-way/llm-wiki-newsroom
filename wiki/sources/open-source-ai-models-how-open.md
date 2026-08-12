@@ -20,10 +20,6 @@ This Hunton legal primer explains why open-source AI diverges from open-source s
 - [analysis] [[DeepSeek]] — R1 (January 2025, MIT-licensed weights) is an open-weights release because the weights are public but the [[TrainingData]] is not
 - [forecast] [[OpenWeights]] — open-weights releases appear to strike a balance that works for some providers and users at this early stage of LLM development
 
-## Key Quotes
-
-> "An open weights AI release does not enable the user to fully understand, reproduce or adapt the underlying AI model, including any inherent biases, because the user does not have access to the training data or training algorithms." — [[OpenWeights]]
-
 ## Connections
 
 - defines: [[OpenWeights]] — the primer's central concept
