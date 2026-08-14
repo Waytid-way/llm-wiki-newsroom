@@ -28,6 +28,10 @@
     QA benchmarks (arXiv 2605.25480) — their numbers describe their system, not
     this one, but they are convergent evidence for the shape.
 
+- q: 'How does this relate to "Retrieval as Reasoning: Self-Evolving Agent-Native Retrieval via LLM-Wiki" (arXiv 2605.25480)?'
+  a: >-
+    It is a strong paper worth reading in its own right. From a WeChat/Tencent team, it reframes retrieval as reasoning: instead of cutting documents into chunks and fetching a few similar ones by vector similarity for each query, it compiles the sources once into a linked wiki that an agent navigates — reading a page, following a link to a related page, and searching again when that is not enough, going back and forth to build an answer rather than stitching isolated fragments. That matters most for multi-hop questions, where the evidence is spread across documents and chunking throws away the relationships between them. Benchmarked against HippoRAG 2, LightRAG, and GraphRAG, it reports state-of-the-art results on three multi-hop QA datasets (HotpotQA, MuSiQue, 2WikiMultiHopQA), improving F1 by two to eight points. Its most useful part is the ablation: removing the multi-round traversal costs roughly twice as much F1 as removing the wiki structure itself, so how the system navigates matters more than how the documents are split. This project was developed independently of the paper and simply arrived at the same shape. It is not an implementation of the paper, and the numbers the paper reports are not measurements of this project. That said, they are strong outside evidence that the wiki shape can beat chunk retrieval. Seeing the paper's traversal-first result, this project added its GROUND Ladder.
+
 - q: "Does it require API keys?"
   a: >-
     The Python tools that build the wiki — the graph builder, the linter, and
@@ -112,6 +116,10 @@
     reader can see where sources disagree and why rather than getting a single
     averaged answer.
 
+- q: "How does it stay coherent as the wiki grows, and how does it handle changes or stale information?"
+  a: >-
+    Coherence is handled on two sides. When you add or change a source, the build does not only touch the new page — it cascades updates into related existing pages so their claims and links stay current. Separately, a reground loop periodically re-reads the already-published pages, not just the sources, and re-aligns derived pages such as overviews, hub pages, and contradiction pages against the current state, to catch stale relationships and drift that source-only checks miss. A deterministic Python linter also flags staleness and contradictions mechanically. Honestly, this is designed for the problem rather than proven at scale: the public example corpus is small, and some parts — such as automatically closing an issue once it is resolved — are still being built, so treat coherence-at-scale as a hypothesis under active work.
+
 - q: "Can I use it in Korean or another language?"
   a: >-
     There is an optional Korean mode, enabled with WIKI_LANG=ko, that translates
@@ -129,6 +137,10 @@
     interactive knowledge graph — every page a node, every link an edge,
     auto-clustered — runs locally after you clone, by serving the graph folder
     and opening graph.html in a browser.
+
+- q: "Does it work with Obsidian?"
+  a: >-
+    Yes. The wiki is plain markdown with wikilink-style connections between pages, which is Obsidian's native format, so you can open the wiki folder as an Obsidian vault and the pages, backlinks, and graph view all work with no conversion. It is not an Obsidian plugin — Obsidian is one way to read and browse the output, while the agent that builds and maintains the wiki runs on Claude Code over the same folder. Any markdown editor works, but Obsidian gives you the linked-note and graph experience out of the box.
 
 - q: "Is my data sent anywhere?"
   a: >-
