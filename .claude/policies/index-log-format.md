@@ -53,7 +53,7 @@ Each entry starts in the form `## [YYYY-MM-DD] <operation> | <title>`, so it can
 grep "^## \[" log.md | tail -10
 ```
 
-**Operations** (free tokens): use both slash-command operations (`ingest` · `query` · `lint` · `graph`) and operational ones (`policy` · `refactor` · `content` · `export`, etc.). Lint does not enforce a whitelist of tokens (it only validates date ordering), so use freely any label with a clear meaning.
+**Operations** (free tokens): use both slash-command operations (`/wiki-ingest` · `/wiki-query` · `/wiki-lint` · `/wiki-graph`) and operational ones (`policy` · `refactor` · `content` · `export`, etc.). Lint does not enforce a whitelist of tokens (it only validates date ordering), so use freely any label with a clear meaning.
 
 ### Append-at-bottom rule
 

@@ -162,7 +162,7 @@ Each lens is composed of "embodiment question + representative flag conditions +
 - Negative·positive adjectives concentrated on a particular subject
 - **Asymmetric attribution strength in a hub comparing two sides — nation·camp** — one side appears strongly via direct utterance·self-definition quotes while the other is flat under narrator-voice assertion. Check that each global-comparison item carries primary-source attribution or a "...is reported to..." hedge
 
-**Boundary with the Rubric**: Rubric N2 (DUE balance) looks only at the ratio of evidence counts. Bias comes from word choice·citation method·conclusion tone, so it is not caught by quantitative metrics. The desk's exclusive territory.
+**Boundary with the Rubric**: Rubric N2 (due weight) looks only at the ratio of evidence counts. Bias comes from word choice·citation method·conclusion tone, so it is not caught by quantitative metrics. The desk's exclusive territory.
 
 #### Lens 2 — Information Density
 

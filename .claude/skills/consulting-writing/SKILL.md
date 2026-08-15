@@ -11,9 +11,9 @@ Writing craft drawn from management-consulting deliverables — the executive-su
 
 A roll-up document must cover its subitems with no overlap and no gaps — the MECE principle separates a set of items into subsets that are "mutually exclusive (ME) and collectively exhaustive (CE)." Group many items under 2–4 top axes, place every item under at least one axis, and put anything that fits nowhere into an explicit residual (`기타` / "other") axis. Every subunit (cluster, theme, …) must appear in the roll-up (collectively exhaustive — no subunit dropped).
 
-## Executive Summary structure (con.scr · con.so-what · con.bold-bullet · con.numeric-precision)
+## Executive Summary structure (con.scr · con.so-what · con.bold-bullet · con.numeric-precision · con.numeric-density)
 
-The intro craft that compresses a complex domain for a decision-maker. Resists deterministic measurement (judge=M, qualitative review); the source techniques shared by author and reviewer:
+The intro craft that compresses a complex domain for a decision-maker. The first four techniques resist deterministic measurement (judge=M, qualitative review); con.numeric-density is judge=A and deterministic (per-paragraph number-token ceiling, threshold injected by manifest). The source techniques shared by author and reviewer:
 
 - **SCR** (con.scr) — develop the intro as Situation → Complication → Resolution (McKinsey). e.g. ✅ "Market share fell 8% year over year (Situation). A competitor entered at a 15% lower price (Complication). We respond by repositioning as premium (Resolution)." / ❌ "The market environment is difficult and improvement is needed" (Situation·Complication·Resolution undifferentiated)
 - **So-what upfront** (con.so-what) — lead with the conclusion (the key implication), not a long description or preamble. e.g. ✅ "We can cut indirect costs by ₩2B per year — labor, supply waste, and process inefficiency are the drivers" (conclusion first) / ❌ "We analyzed three factors affecting profitability…" (description first)

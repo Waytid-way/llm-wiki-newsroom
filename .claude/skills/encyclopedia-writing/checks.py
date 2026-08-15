@@ -269,6 +269,17 @@ def _slug_only(target: str) -> str:
     return bare.split("#", 1)[0]
 
 
+def _max_min_ratio(values: list[int]) -> tuple[int, int, float]:
+    """(max, min, max/min) with the single-value/empty fallbacks — shared with
+    journalism-writing (D3-ratio semantics identical)."""
+    if len(values) >= 2:
+        mx, mn = max(values), min(values)
+        return mx, mn, mx / mn if mn > 0 else float("inf")
+    total = sum(values)
+    mn = total if values else 0
+    return total, mn, 1.0 if values else 0.0
+
+
 def _split_sentences(text: str) -> list:
     """Coarse sentence split of body text (N5). Verbatim from contradiction.py.
     (Splits on .!?。 + newlines — language-agnostic, but feeds the dormant Korean
@@ -438,20 +449,12 @@ def evaluate_contradiction_aggregate(
         )
         if count > 0:
             axis_theme_counts[axis_name] = count
-    if len(axis_theme_counts) >= 2:
-        values = list(axis_theme_counts.values())
-        d3_max = max(values)
-        d3_min = min(values)
-        d3_ratio = d3_max / d3_min if d3_min > 0 else float("inf")
-    else:
-        d3_max = sum(axis_theme_counts.values())
-        d3_min = d3_max if axis_theme_counts else 0
-        d3_ratio = 1.0 if axis_theme_counts else 0.0
+    d3_max, d3_min, d3_ratio = _max_min_ratio(list(axis_theme_counts.values()))
 
     # F1 — block landscape-cluster references (Coatrack)
     f1_refs: list = []
     for target in all_links:
-        stem = target.strip().split("/")[-1].split("#", 1)[0]
+        stem = _slug_only(target)
         if stem in cluster_slugs:
             f1_refs.append(stem)
     f1_count = len(f1_refs)
@@ -494,7 +497,7 @@ def evaluate_overview_aggregate(content: str, *, section_spans: list, all_links:
     # F1 — block theme references (Coatrack)
     f1_count = 0
     for target in all_links:
-        stem = target.strip().split("/")[-1].split("#", 1)[0]
+        stem = _slug_only(target)
         if stem in theme_stems:
             f1_count += 1
 

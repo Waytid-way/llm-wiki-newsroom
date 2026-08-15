@@ -182,9 +182,17 @@ def count_cite_type_meta(content: str) -> int:
     return sum(len(p.findall(content)) for p in CITATION_TYPE_META_PATTERNS)
 
 
-def _section_body(content: str, header: str) -> str:
-    """Return the body of the H2 section (`## <header>`), or '' if absent. Ported
-    verbatim from source.py."""
+def _section_body(content: str, header: str, *, prefix: bool = False) -> str:
+    """Return the body of the H2 section, or '' if absent. Exact header match by
+    default (`header` includes the `## ` prefix); prefix=True allows suffix
+    variants on the heading line (`header` given without the `## ` prefix)."""
+    if prefix:
+        pattern = re.compile(
+            r"^##\s+" + re.escape(header) + r".*?$(.*?)(?=^##\s|\Z)",
+            re.DOTALL | re.MULTILINE,
+        )
+        m = pattern.search(content)
+        return m.group(1) if m else ""
     pattern = re.compile(rf"^{re.escape(header)}\s*$", re.MULTILINE)
     m = pattern.search(content)
     if not m:
@@ -406,17 +414,6 @@ _QUOTE_IN_BULLET_RE = re.compile(
 _ANCHOR_ALLOWED_SECTIONS = {"Key Quotes", "Key Claims", "Summary"}
 
 
-def _extract_section(content: str, heading: str) -> str:
-    """Body between `## <heading>` and the next H2 (or EOF). Verbatim from
-    contradiction.py."""
-    pattern = re.compile(
-        r"^##\s+" + re.escape(heading) + r".*?$(.*?)(?=^##\s|\Z)",
-        re.DOTALL | re.MULTILINE,
-    )
-    m = pattern.search(content)
-    return m.group(1) if m else ""
-
-
 def _normalize_for_match(s: str) -> str:
     s = s.translate(_SMART_QUOTE_TRANS)
     s = re.sub(r'[\"\'`*]', '', s)
@@ -482,7 +479,7 @@ def _quote_grounding(body: str, evidence_slugs: set, sources_dir):
 def _evidence_anchor_check(body: str, source_slugs: set):
     """L4 advisory — (anchored, quoted_total, unanchored_samples)."""
     # `Representative Evidence` is the live English contradiction.md section header.
-    evidence_section = _extract_section(body, "Representative Evidence")
+    evidence_section = _section_body(body, "Representative Evidence", prefix=True)
     if not evidence_section:
         return 0, 0, []
     parts = re.split(r"(?:^|\n)\s*-\s+", "\n" + evidence_section.strip())

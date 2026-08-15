@@ -287,7 +287,7 @@ Structural and mechanical conventions with no external craft original. Measureme
 
 #### Interpreting the automated (A) metric output
 
-The lint output is labeled with **legacy codes** (N4·N5·S2·X1·G1 etc.) for readability — the correspondence with the mapping-table dotted IDs is owned by the `legacy` field of each craft skill's `criteria.json` as SoT (e.g. N7=`enc.label-neutral` · T4=`jrn.qualifier` · L2=`cit.cite-consistency` · N4=`house.source-repetition` · S2=`struct.evidence-count`). Running `python tools/lint.py contradiction [<theme>]` prints **four lines** per theme file (split by dimension — the automated 20 criteria in a 4-line structure):
+The lint output is labeled with **legacy codes** (N4·N5·S2·X1·G1 etc.) for readability — the correspondence with the mapping-table dotted IDs is owned by the `legacy` field of each craft skill's `criteria.json` as SoT (e.g. N7=`enc.label-neutral` · T4=`jrn.qualifier` · L2=`cit.cite-consistency`; `house.*`/`struct.*` codes are owned by this file's structural tables, not criteria.json). Running `python tools/lint.py contradiction [<theme>]` prints **four lines** per theme file (split by dimension — the automated 19 criteria in a 4-line structure, plus the L4 informational advisory):
 
 ```
   contradictions/<theme>.md:

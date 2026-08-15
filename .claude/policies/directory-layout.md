@@ -81,7 +81,7 @@ Naming rule: under `wiki/` and `graph/`, a `_` prefix means an auto-generated da
 - `wiki/overviews/`: landscape-axis cluster-level analysis (content only)
 - `graph/`: graph-related outputs + cluster-label config (`_graph.json`, `_clusters.json`, `cluster_labels.json`, `graph.html`)
 - `wiki-export/`: external-distribution outputs
-- `tools/`: Python scripts (domain config lives in `graph/`). Self-improvement data splits by what the file holds: what a fresh clone needs to run the loop is committed, and therefore public (`regression_set.json`, `_defect-log.jsonl`); what accumulates operator working notes is gitignored (`_failure-review.json`·`_feedback-review.json`)
+- `tools/`: Python scripts (domain config lives in `graph/` — exception: the contradiction engine's rules in `tools/_contradiction_rules.json`). Self-improvement data splits by what the file holds: what a fresh clone needs to run the loop is committed, and therefore public (`regression_set.json`, `_defect-log.jsonl`); what accumulates operator working notes is gitignored (`_failure-review.json`·`_feedback-review.json`)
 - `tests/`: pytest regression tests — keeping the bug classes found in audits (`---`-in-value · escape corruption · judgment divergence · hook contract) as executable guards
 
 ## The Human-Edit Convention for `cluster_labels.json`

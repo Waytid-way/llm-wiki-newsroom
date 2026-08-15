@@ -199,7 +199,7 @@ After editing, re-run `python tools/build.py` and the new name is reflected in e
 </details>
 
 #### Knowledge graph visualization
-Drawing every page as a node and every wikilink as an edge, it generates an interactive browser graph (`graph/graph.html`). Clicking a node highlights its connections, and each edge carries a "why it's connected" label readable on mouse hover. Edges are classified into 5 types (contradicts·defines·cites·references·inferred) and color-coded — the 4 explicit edge types stated in the body get different colors by relationship meaning, while inferred edges leading to pages that aren't directly linked but share 3+ common references are shown in lavender, surfacing implicit relatedness.
+Drawing every page as a node and every wikilink as an edge, it generates an interactive browser graph (`graph/graph.html`). Clicking a node highlights its connections, and each edge carries a "why it's connected" label readable on mouse hover. Edges are classified into 5 types (contradicts·defines·cites·references·inferred) and color-coded — the 4 explicit edge types stated in the body get different colors by relationship meaning, while inferred edges leading to pages that aren't directly linked but share 5+ common references are shown in lavender, surfacing implicit relatedness.
 
 Serve the `graph/` folder over a local web server (e.g. `python -m http.server`) and open `graph.html` — it fetches its data, so a `file://` double-click is unsupported — and these interactions are available right in the browser:
 
@@ -526,7 +526,7 @@ After --fix completes, tools/build.py runs in full (the empty per-domain overvie
 tools/build.py graph  (runs the graph stage only)
   · Parse every page and compute two kinds of connections (edges)
     · explicit edges: [[wikilinks]] in the body
-    · inferred edges: pairs sharing 3+ common referenced pages
+    · inferred edges: pairs sharing 5+ common referenced pages
   · Generate graph/_graph.json
   · graph.html itself is a committed static shell — when opened directly in a browser the physics
     simulation runs live to decide node placement. graph.html fetches its data as
@@ -658,8 +658,8 @@ A small knowledge base mapping the debate over what "open source" should mean fo
 | Concept pages | 6 (technology · licensing · policy) |
 | **Per-domain overviews (Cluster Overview)** | **3** (covering the whole open-source-AI debate) |
 | **Per-theme contradiction analyses** | **2** |
-| Knowledge graph | 15 nodes, 80 edges (many with relation labels) |
-| Backlink index | 11 targets |
+| Knowledge graph | 15 nodes, 81 edges (many with relation labels) |
+| Backlink index | 12 targets |
 | Contradiction tracking | 1 item (classified into 2 themes) |
 
 **Main topics** (3 domain clusters): the open-source AI definition, open weights, and licensing · open-washing — plus 2 contradiction themes cutting across them. (Associative trails and timelines ship empty here; one example synthesis is included — generate more with `/wiki-query`, `/wiki-trail`, and `/wiki-timeline` once you've added sources.)

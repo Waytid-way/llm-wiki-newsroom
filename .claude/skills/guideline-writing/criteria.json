@@ -1,6 +1,6 @@
 {
   "skill": "guideline-writing",
-  "_note": "Guideline-authoring craft criteria, single SoT. judge=A `gdl.no-deliberation-narrative` is measured by `evaluate_deliberation_narrative` in checks.py — the caller (tools/_lint/meta_schema.py voice pass) injects the target text; the count of matches must be <= 0. judge=M criteria keep definition + pass_condition and are applied in the blind review pass (SKILL.md 'Blind Review Protocol'). Authoring prose with examples is in SKILL.md.",
+  "_note": "Guideline-authoring craft criteria, single SoT. judge=A `gdl.no-deliberation-narrative` is measured via `find_deliberation_narrative` in checks.py (the invoked entry point — the caller tools/_lint/meta_schema.py voice pass injects the target text; `evaluate_deliberation_narrative` wraps it for the AST/regression tests); the count of matches must be <= 0. judge=M criteria keep definition + pass_condition and are applied in the blind review pass (SKILL.md 'Blind Review Protocol'). Authoring prose with examples is in SKILL.md.",
   "criteria": {
     "gdl.no-deliberation-narrative": {
       "name": "No deliberation narrative", "dimension": "Operative voice", "judge": "A",

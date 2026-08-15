@@ -251,7 +251,7 @@ Structural and mechanical rules with no external craft source text. Measurement 
 
 #### Interpreting the automatic (A) metric output
 
-The lint output is notated for readability with **legacy codes** (W1 · W2 · W3 · X2 · G1 · G2 etc.) — the correspondence with the mapping-table dotted IDs is owned by the `legacy` field of each craft skill's `criteria.json` as SoT (e.g., W1=`enc.link-density` · G1=`cit.grade-meta` · X2=`struct.theme-drilldown`). When `python tools/lint.py overview` runs, the following one-line format is output for each overview file:
+The lint output is notated for readability with **legacy codes** (W1 · W2 · W3 · X2 · G1 · G2 etc.) — the correspondence with the mapping-table dotted IDs is owned by the `legacy` field of each craft skill's `criteria.json` as SoT (e.g., W1=`enc.link-density` · G1=`cit.grade-meta`; `struct.*` codes like X2 are owned by this file's structural table, not criteria.json). When `python tools/lint.py overview` runs, the following one-line format is output for each overview file:
 
 ```
   overviews/<slug>.md:

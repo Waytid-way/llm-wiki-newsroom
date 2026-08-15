@@ -6,9 +6,10 @@
 > multi-agent flow, 9 slash commands, deterministic `tools/` pipeline). Even in
 > this minimal mode, four rules are non-negotiable:
 > 1. Never hand-edit generated artifacts: `wiki/index.md`, `wiki/sources/_catalog*.md`,
->    any `<!-- AUTO:* BEGIN/END -->` region, or anything under `graph/` —
+>    any `<!-- AUTO:* BEGIN/END -->` region, or `graph/_*.json` (exception:
+>    `graph/cluster_labels.json` is operator-edited per the human-edit convention) —
 >    run `python tools/build.py` instead.
-> 2. Never hand-write `graph/graph.html` or `graph/*.json` — the HTML is a committed
+> 2. Never hand-write `graph/graph.html` or `graph/_*.json` — the HTML is a committed
 >    Sigma.js shell that fetches build artifacts.
 > 3. Run `python tools/lint.py` and require exit 0 before treating content as published.
 > 4. English TitleCase filenames are the default; non-Latin-script entities may use a
@@ -133,7 +134,7 @@ Triggered by: *"query: <question>"*
 
 Triggered by: *"lint"*
 
-Run `python tools/lint.py` (9 deterministic groups; exit 0 gates publication). Manual checks — orphan pages, contradictions, stale content, data gaps — supplement the script, never replace it.
+Run `python tools/lint.py` (10 deterministic groups; exit 0 gates publication). Manual checks — orphan pages, contradictions, stale content, data gaps — supplement the script, never replace it.
 
 ---
 

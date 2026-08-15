@@ -49,6 +49,8 @@ _enc_spec = _ilu.spec_from_file_location(
 _enc_checks = _ilu.module_from_spec(_enc_spec)
 _enc_spec.loader.exec_module(_enc_checks)
 DIALECTIC_LABEL_RE = _enc_checks.DIALECTIC_LABEL_RE
+_slug_only = _enc_checks._slug_only
+_max_min_ratio = _enc_checks._max_min_ratio
 C_LABEL_BROAD_RE = re.compile(r"\*\*(?:Position\s+)?C\b[^*]*\*\*")  # language-agnostic (any **C …** / **Position C …** label)
 # C-position meta-critique keywords (D6). English-native literals first; the Korean
 # forms fire under WIKI_LANG=ko.
@@ -136,15 +138,8 @@ def evaluate_overview_aggregate(*, all_links: list, cluster_slugs: set) -> dict:
     overview.py. (Counts slug references — language-agnostic.)"""
     cluster_ref_counts: dict = {}
     for target in all_links:
-        stem = target.strip().split("/")[-1].split("#", 1)[0]
+        stem = _slug_only(target)
         if stem in cluster_slugs:
             cluster_ref_counts[stem] = cluster_ref_counts.get(stem, 0) + 1
-    if len(cluster_ref_counts) >= 2:
-        max_refs = max(cluster_ref_counts.values())
-        min_refs = min(cluster_ref_counts.values())
-        d3_ratio = max_refs / min_refs if min_refs > 0 else float("inf")
-    else:
-        max_refs = sum(cluster_ref_counts.values())
-        min_refs = max_refs if cluster_ref_counts else 0
-        d3_ratio = 1.0 if cluster_ref_counts else 0.0
+    max_refs, min_refs, d3_ratio = _max_min_ratio(list(cluster_ref_counts.values()))
     return {"max_refs": max_refs, "min_refs": min_refs, "d3_ratio": d3_ratio}

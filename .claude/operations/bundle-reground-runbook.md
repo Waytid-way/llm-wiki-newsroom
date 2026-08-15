@@ -40,7 +40,7 @@ A bundle is every published derived page of **one cluster**, read in a single De
 
 Run in the main session after fixes (don't trust an agent's self-report):
 
-- Per-type lint for each touched page (`python tools/lint.py <overview|contradiction|hub|synthesis> [<slug>]`) + `python tools/lint.py graph` broken links 0.
+- Per-type lint for each touched page (`python tools/lint.py <overview|contradiction|synthesis> [<slug>]` — the `hub` group runs corpus-wide, its subcommands take no slug target) + `python tools/lint.py graph` broken links 0.
 - One clean `python tools/build.py` before committing.
 - `python -m pytest tests/` when the batch touched `tools/`.
 
