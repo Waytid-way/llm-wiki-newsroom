@@ -1,0 +1,8 @@
+# Optional native Leiden backend (tools/_build/clusters.py) — igraph + leidenalg.
+# Default install does NOT include these; without them the build automatically
+# uses the pure-Python Leiden fallback (tools/_build/_leiden_py.py, same
+# RBConfiguration quality, verified to reproduce the native output on the
+# shipped corpus). Install this file only for large corpora where the C
+# implementation is meaningfully faster:  pip install -r requirements-native.txt
+igraph>=0.11
+leidenalg>=0.10

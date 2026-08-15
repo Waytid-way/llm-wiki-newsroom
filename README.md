@@ -81,6 +81,19 @@ cd llm-wiki-newsroom
 
 > Or click **["Use this template"](https://github.com/alfadur7/llm-wiki-newsroom/generate)** to create your own wiki repo from this scaffold. To start from a clean slate, delete the example pages under `wiki/` (keep the folders and `graph/cluster_labels.json`), then ingest your own sources with `/wiki-ingest`.
 
+**Python dependencies** (for the deterministic `tools/` pipeline — no API keys):
+
+```bash
+pip install -r requirements.txt            # default: pure-Python, no native builds
+pip install -r requirements-native.txt     # optional: native Leiden (faster on large corpora)
+```
+
+The default install needs **no compiled C extensions**: the `clusters` phase of
+`python tools/build.py` automatically uses the pure-Python Leiden fallback
+(`tools/_build/_leiden_py.py`), which reproduces the native output on the
+shipped corpus. Install `requirements-native.txt` (`igraph` + `leidenalg`)
+only if you cluster very large corpora and want the C implementation's speed.
+
 This project assumes an environment where the AI agent reads and edits files and invokes tools on its own. Support levels by agent:
 
 | Agent | Config file | Support level |
