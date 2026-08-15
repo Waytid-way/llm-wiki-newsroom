@@ -48,10 +48,7 @@ from _lib import REPO_ROOT, atomic_write_text, canonicalize_url, reject_args  # 
 from _net import UnsafeURLError  # noqa: E402
 from _ingest.fetch_article import (  # noqa: E402
     fetch_html,
-    fetch_pdf,
-    is_pdf_url,
     save_markdown,
-    save_pdf,
     sniff_and_save_pdf,
     unwrap_share_wrapper,
 )
@@ -234,8 +231,9 @@ def fetch_one(
 
     `dedup_index` maps canonical-URL → existing source slug. The inbox-time
     dedup in main() only sees the original URL; this re-checks the *redirect-
-    resolved* final URL (PDF-via-redirect's `r.url`, HTML's `_final_url`) before
-    saving, so two different shortlinks to one target don't both persist. On a
+    resolved* final URL before saving (any PDF's `r.url` — direct .pdf URLs
+    included — and HTML's `_final_url`), so two different shortlinks to one
+    target don't both persist. On a
     hit returns ("SKIPPED:duplicate-of-<slug>", None) — main() drops it like an
     inbox-time skip. PDFs especially need this: they carry no frontmatter URL,
     so the next /wiki-ingest pass can't dedup them by URL.
@@ -251,22 +249,14 @@ def fetch_one(
     url = unwrap_share_wrapper(url)
     dedup_index = dedup_index or {}
     try:
-        if is_pdf_url(url):
-            # Re-check the (post-unwrap) URL against dedup_index — main()'s
-            # inbox-time dedup only saw the pre-unwrap wrapper URL, and the
-            # sniffed-PDF / HTML paths below both re-check. PDFs especially
-            # need this (no frontmatter URL for a later pass to dedup by).
-            dup = dedup_index.get(canonicalize_url(url))
-            if dup:
-                return f"SKIPPED:duplicate-of-{dup}", None
-            body, title = fetch_pdf(url)
-            path = save_pdf(url, body, title)
-            return "OK", path
-
-        # PDF-via-redirect sniff, shared with fetch_article.main. The dedup
-        # hook re-checks the redirect-resolved final URL before the body
-        # downloads. None = HTML fall-through (a WAF-blocked sniff included —
-        # fetch_html retries via curl / Wayback before giving up).
+        # PDF sniff, shared with fetch_article.main. Handles *both* direct-PDF
+        # URLs (.pdf extension) and PDF-via-redirect URLs: the streaming GET
+        # follows redirects, so the dedup hook always judges the redirect-
+        # resolved final URL before the body downloads. A direct-PDF branch
+        # that only re-checked the pre-fetch URL left the duplicate hole open
+        # for two different shortlinks resolving to one PDF (C13 / issue #4).
+        # None = HTML fall-through (a WAF-blocked sniff included — fetch_html
+        # retries via curl / Wayback before giving up).
         sniffed = sniff_and_save_pdf(
             url,
             timeout=15,
@@ -361,8 +351,14 @@ def main() -> int:
             retain.append((url, meta))
             print(f"  -> {status} (kept in inbox for retry)")
 
-    write_inbox(retain)
+    # Archive FIRST, then rewrite the inbox. If the process dies between the
+    # two writes, the just-processed entries must still be queued in the inbox
+    # (write_inbox — the only thing that drops them — runs last), so the next
+    # run re-fetches and appends to the archive. The reverse order loses them
+    # entirely: the inbox was already rewritten without them and the archive
+    # never got them (C14 / issue #3).
     append_archive(archive_entries)
+    write_inbox(retain)
 
     print()
     print(f"Processed {len(entries)} URLs · OK={ok_count} · retained={len(retain)}")
