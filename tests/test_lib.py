@@ -127,6 +127,30 @@ def test_parse_page_meta_description_abbreviation_period_not_truncated():
     assert desc == "U.S. Army troops advanced."
 
 
+def test_parse_page_meta_frontmatter_description_wins():
+    # Frontmatter `description:` (e.g. English indexing text on Thai pages)
+    # overrides the body-scan fallback.
+    _, _, desc, *_ = parse_page_meta(
+        "---\n"
+        "title: \"กราฟ\"\n"
+        "type: concept\n"
+        "description: \"Graph engineering designs agents as explicit graphs.\"\n"
+        "---\n"
+        "นี่คือสรุปภาษาไทยของบทความที่ยาวมาก...\n",
+        "graph.md",
+    )
+    assert desc == "Graph engineering designs agents as explicit graphs."
+
+
+def test_parse_page_meta_no_description_keeps_body_fallback():
+    # No frontmatter description -> existing body-scan behavior unchanged.
+    _, _, desc, *_ = parse_page_meta(
+        "---\ntitle: T\ntype: entity\n---\nFallback body paragraph.\n",
+        "t.md",
+    )
+    assert desc == "Fallback body paragraph."
+
+
 def test_parse_page_meta_description_skips_abbrev_to_real_sentence_end():
     # The scan skips the abbreviation period and cuts at the actual sentence
     # boundary that follows it.

@@ -626,33 +626,36 @@ def parse_page_meta(content: str, filename: str) -> tuple[str, str, str, str, st
     source_file = _fm_scalar("source_file", "")
     date = _fm_scalar("published", "") or _fm_scalar("scraped", "")
     source_url = _fm_scalar("source_url", "")
+    description = _fm_scalar("description", "")  # frontmatter wins (e.g. English
+    # indexing text on Thai pages); body-scan fallback below only when absent.
 
     body = strip_frontmatter(content)
 
-    # Drop HTML comments (abbreviation declarations, AUTO:* markers) before
-    # scanning for the description — otherwise a hub whose first body content is
-    # a `<!-- abbreviation... -->` block yields the comment's first line as its
-    # description, leaking an unclosed `<!--` fragment into index.md/catalogs.
-    body = re.sub(r'<!--.*?-->', '', body, flags=re.DOTALL)
+    if not description:
+        # Drop HTML comments (abbreviation declarations, AUTO:* markers) before
+        # scanning for the description — otherwise a hub whose first body content is
+        # a `<!-- abbreviation... -->` block yields the comment's first line as its
+        # description, leaking an unclosed `<!--` fragment into index.md/catalogs.
+        body = re.sub(r'<!--.*?-->', '', body, flags=re.DOTALL)
 
-    first_list_item = ""
-    for line in body.split("\n"):
-        line = line.strip()
-        if not line or line.startswith("#") or line.startswith(">") or line.startswith("|") or line.startswith("*"):
-            continue
-        if line.startswith("- "):
-            if not first_list_item and len(line) > 10:
-                first_list_item = line[2:]
-            continue
-        if re.match(r'^\d+[.)]\s', line):
-            continue
-        if len(line) < 10:
-            continue
-        description = line
-        break
+        first_list_item = ""
+        for line in body.split("\n"):
+            line = line.strip()
+            if not line or line.startswith("#") or line.startswith(">") or line.startswith("|") or line.startswith("*"):
+                continue
+            if line.startswith("- "):
+                if not first_list_item and len(line) > 10:
+                    first_list_item = line[2:]
+                continue
+            if re.match(r'^\d+[.)]\s', line):
+                continue
+            if len(line) < 10:
+                continue
+            description = line
+            break
 
-    if not description and first_list_item:
-        description = first_list_item
+        if not description and first_list_item:
+            description = first_list_item
 
     if description:
         description = re.sub(r'\[\[([^|\]]*\|)?([^\]]+)\]\]', r'\2', description)
