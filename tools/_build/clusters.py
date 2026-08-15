@@ -102,7 +102,10 @@ def _collect_hub_tags() -> dict[str, list[str]]:
 def _load_labels() -> list[dict]:
     if not LABELS_PATH.exists():
         return []
-    data = json.loads(LABELS_PATH.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(LABELS_PATH.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return []
     return data.get("labels", [])
 
 

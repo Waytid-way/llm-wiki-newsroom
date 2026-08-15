@@ -32,14 +32,14 @@ from datetime import date as _date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI  # noqa: E402
+from _lib import REPO_ROOT, WIKI  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))
 from _editor_date import last_commit_date  # noqa: E402
 
 CONTRADICTIONS_DIR = WIKI / "contradictions"
 CLAIMS_JSON = CONTRADICTIONS_DIR / "_contradictions.json"
 THEMES_JSON = CONTRADICTIONS_DIR / "_contradictions_themes.json"
-GUIDE_PATH = Path(".claude/commands/wiki-lint.md")
+GUIDE_PATH = REPO_ROOT / ".claude" / "commands" / "wiki-lint.md"
 
 SLUG_RE = re.compile(r"^[a-z0-9-]+$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")

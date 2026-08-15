@@ -64,7 +64,7 @@ _STRIP_CHARS = _TYPOGRAPHIC_QUOTES + "'\"\\"
 _FUZZY_HIGH = 0.7
 _FUZZY_LOW = 0.4
 
-_TOKEN_SPLIT_RE = re.compile(r'["\'()<>·…,\-—–]+')
+_TOKEN_SPLIT_RE = re.compile(r'["\'()<>·…,\-—–.]+')
 
 
 def _quote_stripped(s: str) -> str:

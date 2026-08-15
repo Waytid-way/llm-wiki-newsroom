@@ -56,13 +56,7 @@ ENGLISH_STANDARD = {
 def _extract_headings(text: str) -> set[str]:
     """Return the set of heading texts (H1-H6) in the page, ignoring code blocks."""
     headings: set[str] = set()
-    in_fence = False
-    for line in text.splitlines():
-        if line.lstrip().startswith("```"):
-            in_fence = not in_fence
-            continue
-        if in_fence:
-            continue
+    for line in strip_code(text).splitlines():
         m = HEADING_RE.match(line)
         if m:
             headings.add(m.group(1).strip())

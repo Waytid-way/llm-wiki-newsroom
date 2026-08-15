@@ -115,16 +115,11 @@ def _extract_raw_url(raw_path: str) -> str | None:
     except OSError:
         return None
 
-    if text.startswith("---"):
-        fm_end = text.find("\n---", 4)
-        if fm_end != -1:
-            fm = text[4:fm_end]
-            for field in ("source", "url"):
-                m = re.search(rf'^{field}:\s*["\']?([^"\'\n]+)', fm, re.MULTILINE | re.IGNORECASE)
-                if m:
-                    url = m.group(1).strip().rstrip('"').rstrip("'")
-                    if url.startswith(("http://", "https://")):
-                        return url
+    fm = parse_frontmatter(text)
+    for field in ("source", "url"):
+        url = fm.get(field)
+        if isinstance(url, str) and url.startswith(("http://", "https://")):
+            return url
 
     m = re.search(r'\*\*URL:\*\*\s*(https?://\S+)', text, re.IGNORECASE)
     if m:

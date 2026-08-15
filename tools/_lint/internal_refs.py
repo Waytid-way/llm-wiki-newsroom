@@ -1,11 +1,12 @@
 """Published-content → build/governance-internal reference hygiene.
 
-Wiki content shipped to RAG (root meta + entities·concepts·overviews·
-contradictions·syntheses·timelines·trails) must not link into the repo's
-build/governance tree — `.claude/`, `tools/`, `CLAUDE.md`, `raw/`, `log.md`.
-Those targets are plumbing a Q&A reader can neither open nor needs; they leak
-as self-meta into the exported corpus (the export dead-strips the link to plain
-text, but the governance phrase still pollutes the prose).
+Wiki content shipped to RAG (root meta + every content subdirectory except
+`sources` — entities, concepts, timelines, overviews, contradictions,
+syntheses, trails; the set derives from _lib.WIKI_SUBDIRS) must not link into
+the repo's build/governance tree — `.claude/`, `tools/`, `CLAUDE.md`, `raw/`,
+`log.md`. Those targets are plumbing a Q&A reader can neither open nor needs;
+they leak as self-meta into the exported corpus (the export dead-strips the
+link to plain text, but the governance phrase still pollutes the prose).
 
 This is the mirror of two existing guards:
   - `.claude/` guides must not carry decisions/external refs (guideline-writing skill)
@@ -26,15 +27,15 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, read_text_cached  # noqa: E402
+from _lib import WIKI, WIKI_SUBDIRS, read_text_cached  # noqa: E402
 
 # Content destined for the RAG export (sources are excluded — their bodies are
 # not exported, only the one-line index). Root meta files are checked by name.
 ROOT_META = ["overview.md", "contradiction.md", "index.md"]
-CONTENT_SUBDIRS = [
-    "entities", "concepts", "overviews", "contradictions",
-    "syntheses", "timelines", "trails",
-]
+# Derived from the single SoT (_lib.WIKI_SUBDIRS) so a content subdirectory
+# added there is picked up here automatically. Sources are excluded — their
+# bodies are not exported, only the one-line index.
+CONTENT_SUBDIRS = [s for s in WIKI_SUBDIRS if s != "sources"]
 
 _MD_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 _LEADING_DOTSLASH_RE = re.compile(r"^(?:\.\./)+|^\./")

@@ -44,7 +44,9 @@ PLUGIN_PATH = _REPO_ROOT / "wiki" / ".obsidian" / "plugins" / "obsidian-qmd" / "
 # the node binary *beside* qmd.js (resolveNodeRuntime → dirname(qmd.js)/node),
 # so on Windows a node copy must live here — the bare `qmd`/`qmd.cmd` shim can't
 # be run via execFile and the PATH/login-shell lookup fails (no /bin/zsh|bash).
-QMD_CLI_DIR = Path(os.environ.get("APPDATA", "")) / "npm" / "node_modules" / "@tobilu" / "qmd" / "dist" / "cli"
+QMD_CLI_DIR = Path(
+    os.environ.get("APPDATA") or (Path.home() / "AppData" / "Roaming")
+) / "npm" / "node_modules" / "@tobilu" / "qmd" / "dist" / "cli"
 
 
 @dataclass
