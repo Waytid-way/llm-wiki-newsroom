@@ -63,21 +63,16 @@ def run(json_out: bool = False, threshold: float | None = None) -> int:
         import leidenalg
         import igraph as ig
     except ImportError:
-        print("ERROR: leidenalg/igraph not installed. Run: python -m pip install 'igraph' 'leidenalg'", file=sys.stderr)
-        return 2
+        leidenalg = None
+        ig = None
 
     if not CLUSTERS_PATH.exists() or not GRAPH_JSON.exists():
         print("ERROR: graph/_graph.json or _clusters.json not found. Run `python tools/build.py graph` first.", file=sys.stderr)
         return 2
 
-    from _build.clusters import RESOLUTION, SEED, build_hub_graph, to_igraph  # noqa: E402  (tools/ on sys.path at module top)
+    from _build.clusters import RESOLUTION, SEED, build_hub_graph  # noqa: E402  (tools/ on sys.path at module top)
 
     G, _hub_labels, _data, _id_map, _isolated = build_hub_graph(verbose=False)
-
-    # igraph mirror of G — to_igraph is the same conversion _run_leiden uses,
-    # so the warm-membership indexing below shares its vertex assignment.
-    g_ig = to_igraph(G)
-    nodes = g_ig.vs["name"]
 
     # Warm partition — load membership from current _clusters.json.
     clusters_data = json.loads(CLUSTERS_PATH.read_text(encoding="utf-8"))
@@ -94,32 +89,43 @@ def run(json_out: bool = False, threshold: float | None = None) -> int:
     # serialised, not invent placements.
     next_fresh = n_warm_comms
     warm_membership: list[int] = []
-    for n in nodes:
+    for n in G.nodes():
         if n in hub_to_comm:
             warm_membership.append(hub_to_comm[n])
         else:
             warm_membership.append(next_fresh)
             next_fresh += 1
 
-    warm_partition = leidenalg.RBConfigurationVertexPartition(
-        g_ig,
-        initial_membership=warm_membership,
-        weights="weight",
-        resolution_parameter=RESOLUTION,
-    )
-    quality_warm = warm_partition.quality()
     n_warm = len(set(warm_membership))
 
-    # Cold partition — fresh Leiden from singleton start.
-    cold_partition = leidenalg.find_partition(
-        g_ig,
-        leidenalg.RBConfigurationVertexPartition,
-        weights="weight",
-        resolution_parameter=RESOLUTION,
-        seed=SEED,
-    )
-    quality_cold = cold_partition.quality()
-    n_cold = len(set(cold_partition.membership))
+    if leidenalg is not None:
+        from _build.clusters import to_igraph  # noqa: E402
+
+        g_ig = to_igraph(G)
+        warm_partition = leidenalg.RBConfigurationVertexPartition(
+            g_ig,
+            initial_membership=warm_membership,
+            weights="weight",
+            resolution_parameter=RESOLUTION,
+        )
+        quality_warm = warm_partition.quality()
+        cold_partition = leidenalg.find_partition(
+            g_ig,
+            leidenalg.RBConfigurationVertexPartition,
+            weights="weight",
+            resolution_parameter=RESOLUTION,
+            seed=SEED,
+        )
+        quality_cold = cold_partition.quality()
+        n_cold = len(set(cold_partition.membership))
+    else:
+        from _build import _leiden_py
+
+        quality_warm = _leiden_py.quality_of(G, warm_membership, resolution=RESOLUTION)
+        _cold_comms, quality_cold = _leiden_py.find_partition(
+            G, resolution=RESOLUTION, seed=SEED
+        )
+        n_cold = len(_cold_comms)
 
     quality_threshold = _resolved_threshold(threshold)
     delta = quality_cold - quality_warm

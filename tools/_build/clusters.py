@@ -358,7 +358,18 @@ def _run_leiden(
     (alphabetical sort key change → vertex index reshuffle → cold-start
     Leiden lands at a different local optimum). Pass None for cold start.
     """
-    import leidenalg
+    try:
+        import leidenalg
+    except ImportError:
+        from _build import _leiden_py
+
+        communities, _quality = _leiden_py.find_partition(
+            G_nx,
+            resolution=resolution,
+            seed=seed,
+            initial_membership=initial_membership,
+        )
+        return communities
 
     g_ig = to_igraph(G_nx)
 
@@ -440,8 +451,11 @@ def run(cold: bool = False) -> None:
         import igraph  # noqa: F401
         import leidenalg  # noqa: F401
     except ImportError:
-        raise SystemExit(
-            "leidenalg/igraph not installed. Run: python -m pip install 'igraph' 'leidenalg'"
+        print(
+            "NOTE: leidenalg/igraph not installed — using the pure-Python Leiden "
+            "fallback (tools/_build/_leiden_py.py). To use the C implementation: "
+            "python -m pip install 'igraph' 'leidenalg'",
+            file=sys.stderr,
         )
 
     # Load previous-build assignments BEFORE we start writing the new

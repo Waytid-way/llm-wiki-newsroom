@@ -2,8 +2,10 @@ networkx>=3.2
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 # Leiden community detection (tools/_build/clusters.py) — igraph + leidenalg.
-# Without these, the `build clusters` stage fails with ImportError (easy to miss
-# locally if they happen to be installed already).
+# OPTIONAL since 2026-08: without them the build falls back to the pure-Python
+# Leiden in tools/_build/_leiden_py.py (same RBConfiguration quality, verified
+# to reproduce the C output on the shipped corpus). Install for large corpora
+# where the C implementation is much faster.
 igraph>=0.11
 leidenalg>=0.10
 # Weekly briefing email rendering (tools/_briefing/render.py) — markdown → HTML.
