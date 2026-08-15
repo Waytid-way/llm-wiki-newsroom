@@ -32,16 +32,31 @@ import importlib.util as _ilu  # noqa: E402
 # Measuring hub body density and `## Connections` grouping (the encyclopedic
 # nav-anchor format) is owned by the encyclopedia-writing skill. central_anchor
 # (inbound / whether it's an entity) is wiki-wide, so the orchestrator injects it.
+# C72 — the load below is guarded: a missing/renamed checks.py or manifest key
+# must degrade this advisory to empty results instead of crashing ALL of
+# lint.py at import time (lint survival is a hard requirement).
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_MANIFEST = json.loads((_REPO_ROOT / ".claude" / "layers" / "_manifest.json").read_text(encoding="utf-8"))
-_HUB_BUNDLE = _MANIFEST["hub"]["bundles"]["encyclopedia-writing"]
-_enc_spec = _ilu.spec_from_file_location(
-    "enc_checks_hub", _REPO_ROOT / ".claude" / "skills" / "encyclopedia-writing" / "checks.py"
-)
-enc_skill = _ilu.module_from_spec(_enc_spec)
-_enc_spec.loader.exec_module(enc_skill)
-_HUB_FN = _HUB_BUNDLE["fn"]
-_HUB_PARAMS = _HUB_BUNDLE["params"]
+try:
+    _MANIFEST = json.loads((_REPO_ROOT / ".claude" / "layers" / "_manifest.json").read_text(encoding="utf-8"))
+    _HUB_BUNDLE = _MANIFEST["hub"]["bundles"]["encyclopedia-writing"]
+    _enc_spec = _ilu.spec_from_file_location(
+        "enc_checks_hub", _REPO_ROOT / ".claude" / "skills" / "encyclopedia-writing" / "checks.py"
+    )
+    enc_skill = _ilu.module_from_spec(_enc_spec)
+    _enc_spec.loader.exec_module(enc_skill)
+    _HUB_FN = _HUB_BUNDLE["fn"]
+    _HUB_PARAMS = _HUB_BUNDLE["params"]
+    if not callable(getattr(enc_skill, _HUB_FN, None)):
+        raise AttributeError(f"encyclopedia-writing checks.py has no callable {_HUB_FN!r}")
+except (OSError, json.JSONDecodeError, KeyError, AttributeError, TypeError, ValueError, ImportError) as _skill_err:
+    enc_skill = None
+    _HUB_FN = None
+    _HUB_PARAMS = {}
+    print(
+        f"WARNING: hub_body advisory degraded — encyclopedia-writing skill "
+        f"bundle unavailable at import ({_skill_err}); body-length advisory skipped",
+        file=sys.stderr,
+    )
 
 # The regex and stripping for measuring body density and `## Connections`
 # grouping were moved into the encyclopedia-writing skill (evaluate_hub_body).
@@ -73,6 +88,10 @@ def _check_body(content: str, path: Path, dir_label: str) -> list[str]:
     # is wiki-wide, so the orchestrator computes and injects it. Issue formatting
     # stays with the orchestrator.
     issues: list[str] = []
+    if enc_skill is None or _HUB_FN is None:
+        # C72 degraded mode — skill bundle unavailable at import; the advisory
+        # degrades to empty results (lint survives) instead of crashing.
+        return issues
     inbound = len(load_graph()["inbound"].get(f"{dir_label}/{path.name}", []))
     central_anchor = dir_label == "entities" or inbound >= CENTRALITY_EXEMPT
     m = getattr(enc_skill, _HUB_FN)(content, central_anchor=central_anchor, **_HUB_PARAMS)

@@ -88,6 +88,25 @@ def _claims_has_uncommitted() -> bool:
         return False
 
 
+def _staleness_signals(themes_doc: dict, today: str) -> tuple[bool, str | None]:
+    """Return (uncommitted, commit_date) — the two timestamp staleness signals.
+
+    Single SoT for the freshness comparisons duplicated in
+    `is_themes_json_stale()` and `_check_freshness()`: uncommitted edits
+    (derived_at < today) and commit-date drift (derived_at < last commit date).
+    Both consumers format their own message from these signals. Callers must
+    have validated `themes_doc["derived_at"]` (DATE_RE match) before calling.
+    """
+    derived_at = themes_doc.get("derived_at")
+    if not isinstance(derived_at, str):
+        return False, None
+    uncommitted = bool(_claims_has_uncommitted() and derived_at < today)
+    commit_date = _claims_last_change_date()
+    if commit_date and derived_at < commit_date:
+        return uncommitted, commit_date
+    return uncommitted, None
+
+
 def _check_schema(themes_doc: dict) -> list[str]:
     """A. JSON schema conformance — Guide Output Schema."""
     issues: list[str] = []
@@ -318,14 +337,13 @@ def is_themes_json_stale() -> tuple[bool, str | None]:
         return False, None
 
     today = _date.today().isoformat()
-    if _claims_has_uncommitted() and derived_at < today:
+    uncommitted, commit_date = _staleness_signals(themes_doc, today)
+    if uncommitted:
         return True, (
             f"derived_at={derived_at}, but _contradictions.json has "
             f"uncommitted edits (today={today})"
         )
-
-    commit_date = _claims_last_change_date()
-    if commit_date and derived_at < commit_date:
+    if commit_date:
         return True, (
             f"derived_at={derived_at}, but _contradictions.json last "
             f"changed on {commit_date}"
@@ -348,14 +366,13 @@ def _check_freshness(themes_doc: dict) -> str | None:
         return None
 
     today = _date.today().isoformat()
-    if _claims_has_uncommitted() and derived_at < today:
+    uncommitted, commit_date = _staleness_signals(themes_doc, today)
+    if uncommitted:
         return (
             f"  [Freshness] ⚠️ derived_at={derived_at} but _contradictions.json "
             f"has uncommitted edits (today={today}) — regeneration recommended"
         )
-
-    commit_date = _claims_last_change_date()
-    if commit_date and derived_at < commit_date:
+    if commit_date:
         return (
             f"  [Freshness] ⚠️ derived_at={derived_at} but _contradictions.json "
             f"last changed in commit on {commit_date} — theme derivation is stale"

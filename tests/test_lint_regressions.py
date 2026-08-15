@@ -1,5 +1,6 @@
 """Audit regression target tests — catches recurrences of the "copy then edit only
 one side" class, such as divergent lint verdicts and F4 lint-ification."""
+import json
 import re
 import subprocess
 import sys
@@ -383,3 +384,198 @@ def test_a2_exempts_plain_speaker_and_fails_broken_link():
     # several quotes in one section are scored per line: of the first four classes,
     # three are judged (linked·broken·evasion) and one is exempt (plain speaker)
     assert a2("\n".join(q for q, _ in cases[:4])) == (False, 1, 3)
+
+
+def test_hub_body_degrades_when_skill_unavailable(tmp_path):
+    """C72 — an unguarded import-time manifest read + skill exec can crash ALL of
+    lint.py (missing checks.py / manifest key / renamed fn → AttributeError). The
+    load must be guarded: on failure print a warning to stderr and degrade to
+    empty results so lint survives.
+
+    The failure is injected into a fresh interpreter: the skill spec is pointed
+    at a stub module WITHOUT the manifest-declared function name, which is the
+    renamed-function variant of the crash. Import must succeed, the module must
+    hold `enc_skill is None`, and `_check_body` must return no issues.
+    """
+    stub = tmp_path / "stub_checks.py"
+    stub.write_text("def unrelated(): pass\n", encoding="utf-8")
+    code = f"""
+import importlib.util, sys
+from pathlib import Path
+sys.path.insert(0, str(Path.cwd() / "tools"))
+sys.path.insert(0, str(Path.cwd() / "tools" / "_lint"))
+
+_orig_spec = importlib.util.spec_from_file_location
+def _sabotaged(name, location):
+    if name == "enc_checks_hub":
+        return _orig_spec(name, r"{stub}")
+    return _orig_spec(name, location)
+importlib.util.spec_from_file_location = _sabotaged
+
+import hub_body
+assert hub_body.enc_skill is None, hub_body.enc_skill
+issues = hub_body._check_body("# h\\n\\nbody", Path("entities/Fake.md"), "entities")
+assert issues == [], issues
+print("DEGRADED_OK")
+"""
+    proc = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True, text=True, encoding="utf-8", cwd=ROOT, timeout=120,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "DEGRADED_OK" in proc.stdout
+    assert "WARNING" in proc.stderr
+
+
+def test_link_candidates_broken_detection_uses_lib_unresolved_wikilinks(monkeypatch, tmp_path):
+    """C73 — broken-target detection must flow through `_lib.unresolved_wikilinks`
+    (single SoT: strips code, identical target normalization to structure.py).
+    A hand-rolled `LINK_RE.findall` copy diverges: it counted links inside code
+    fences and applied different target normalization.
+    """
+    import link_candidates
+
+    wiki = tmp_path / "wiki"
+    (wiki / "entities").mkdir(parents=True)
+    page = wiki / "entities" / "Seed.md"
+    page.write_text(
+        "See [[Missing]] and [[Existing]] and `[[CodeBroken]]` and\n"
+        "```\n[[FenceBroken]]\n```\n",
+        encoding="utf-8",
+    )
+    existing = wiki / "entities" / "Existing.md"
+    existing.write_text("x\n", encoding="utf-8")
+
+    pages = {"Seed": page, "Existing": existing}
+    bl = tmp_path / "backlinks.json"
+    bl.write_text(
+        json.dumps({"Seed": [{"from": "entities/Seed.md"} for _ in range(6)]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(link_candidates, "WIKI", wiki)
+    monkeypatch.setattr(link_candidates, "BACKLINKS_PATH", bl)
+    monkeypatch.setattr(link_candidates, "hub_stems", lambda: {"Seed"})
+    monkeypatch.setattr(link_candidates, "_index_pages", lambda: pages)
+
+    results = link_candidates._find(min_seeds=1)
+    targets = {r["target"] for r in results}
+    assert "Missing" in targets
+    assert "Existing" not in targets          # resolves → not broken
+    assert "CodeBroken" not in targets        # inline-code strip via the SoT helper
+    assert "FenceBroken" not in targets       # fenced-code strip via the SoT helper
+
+
+def test_suggestions_json_caps_link_candidates_without_top(monkeypatch, capsys):
+    """C50 — the JSON branch must cap link_candidates at DEFAULT_TOP_RESULTS even
+    when --top is absent, mirroring the text branch. Previously the JSON doc
+    carried the full unbounded list while text mode capped at 30.
+    """
+    import suggestions
+
+    fake = [
+        {"target": f"T{i}", "seed_count": 2, "total_mentions": 2,
+         "seeds": ["a", "b"], "appears_in": ["p"]}
+        for i in range(50)
+    ]
+    monkeypatch.setattr(suggestions.link_candidates, "_find", lambda min_seeds=2: fake)
+    monkeypatch.setattr(
+        suggestions.text_candidates, "_candidates",
+        lambda min_mentions=10, min_pages=5, top=50: ({"min_mentions": 10, "min_pages": 5, "candidates": []}, 0),
+    )
+
+    suggestions.run(json_out=True)
+    doc = json.loads(capsys.readouterr().out)
+    assert len(doc["link_candidates"]["results"]) == suggestions.link_candidates.DEFAULT_TOP_RESULTS
+
+    suggestions.run(json_out=True, top=3)
+    doc = json.loads(capsys.readouterr().out)
+    assert len(doc["link_candidates"]["results"]) == 3
+
+
+def test_aggregate_rewrite_block_uses_non_fragmentary_theme_count(capsys):
+    """C52 — the aggregate rewrite block must hand Claude the NON-fragmentary
+    theme count (the F2 gate's comparison basis) and state the `other-fragmentary`
+    exclusion explicitly; previously it printed len(themes) including the
+    fragmentary bucket, so Claude wrote a count the gate rejects.
+    """
+    import contradiction as CT
+
+    CT._emit_rewrite_block_aggregate(claim_count=12, theme_count=5)
+    out = capsys.readouterr().out
+    assert "themes=5 (non-fragmentary" in out
+    assert "other-fragmentary" in out
+    assert "5 NON-fragmentary themes" in out
+
+
+def test_staleness_signals_shared_owner():
+    """C51 — the timestamp staleness comparisons (uncommitted edits +
+    commit-date drift) must be defined exactly once, inside _staleness_signals,
+    and consumed by both is_themes_json_stale and _check_freshness. A second
+    inline copy drifts when only one side changes.
+    """
+    src = (ROOT / "tools" / "_lint" / "contradiction_theme.py").read_text(encoding="utf-8")
+    assert src.count("def _staleness_signals") == 1
+    # both consumers route through the helper — no inline `derived_at <` re-checks
+    assert src.count("uncommitted, commit_date = _staleness_signals(") == 2
+
+
+def test_staleness_signals_behavior(monkeypatch):
+    """C51 — _staleness_signals returns the effective signals the consumers
+    format: (uncommitted, commit_date) with the drift comparisons applied."""
+    import contradiction_theme as CTh
+
+    doc = {"derived_at": "2026-08-10"}
+    today = "2026-08-16"
+
+    monkeypatch.setattr(CTh, "_claims_has_uncommitted", lambda: True)
+    monkeypatch.setattr(CTh, "_claims_last_change_date", lambda: "2026-08-15")
+    assert CTh._staleness_signals(doc, today) == (True, "2026-08-15")
+
+    monkeypatch.setattr(CTh, "_claims_has_uncommitted", lambda: False)
+    assert CTh._staleness_signals(doc, today) == (False, "2026-08-15")
+
+    monkeypatch.setattr(CTh, "_claims_last_change_date", lambda: "2026-08-01")
+    assert CTh._staleness_signals(doc, today) == (False, None)
+
+
+def test_check_freshness_consumes_shared_signals(monkeypatch):
+    """C51 — _check_freshness formats its advisory from the shared signals and
+    does not re-implement the comparisons."""
+    import contradiction_theme as CTh
+
+    doc = {"derived_at": "2026-08-10"}
+    monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (True, None))
+    line = CTh._check_freshness(doc)
+    assert line is not None and "uncommitted edits" in line
+
+    monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (False, "2026-08-15"))
+    line = CTh._check_freshness(doc)
+    assert line is not None and "last changed in commit on 2026-08-15" in line
+
+    monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (False, None))
+    assert CTh._check_freshness(doc) is None
+
+
+def test_is_themes_json_stale_consumes_shared_signals(monkeypatch, tmp_path):
+    """C51 — is_themes_json_stale formats its gate message from the shared
+    signals, so the hard gate and the advisory can never drift apart."""
+    import contradiction_theme as CTh
+
+    themes = tmp_path / "themes.json"
+    themes.write_text(json.dumps({"derived_at": "2026-08-10", "source_count": 3}), encoding="utf-8")
+    claims = tmp_path / "claims.json"
+    claims.write_text(json.dumps([{"id": "a"}, {"id": "b"}, {"id": "c"}]), encoding="utf-8")
+    monkeypatch.setattr(CTh, "THEMES_JSON", themes)
+    monkeypatch.setattr(CTh, "CLAIMS_JSON", claims)
+
+    monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (True, None))
+    stale, reason = CTh.is_themes_json_stale()
+    assert stale and "uncommitted edits" in reason
+
+    monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (False, "2026-08-15"))
+    stale, reason = CTh.is_themes_json_stale()
+    assert stale and "last changed on 2026-08-15" in reason
+
+    monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (False, None))
+    assert CTh.is_themes_json_stale() == (False, None)
+

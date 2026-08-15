@@ -19,9 +19,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import (  # noqa: E402
     read_text_cached,
+    unresolved_wikilinks,
     WIKI,
-    WIKILINK_RE as LINK_RE,
-    strip_code,
     wiki_page_paths,
 )
 sys.path.insert(0, str(Path(__file__).parent))
@@ -56,12 +55,12 @@ def _find(
 
     page_broken: dict[str, list[str]] = {}
     for stem, path in pages.items():
-        text = strip_code(read_text_cached(path))
-        broken_here = [
-            t.strip()
-            for t in LINK_RE.findall(text)
-            if t.strip() not in pages
-        ]
+        # C73 — broken-target detection flows through the _lib single SoT
+        # (unresolved_wikilinks: strips code and applies identical target
+        # normalization to `_lint/structure.py`). A hand-rolled copy here
+        # diverged (missing code-strip / differing normalization) and the two
+        # checks disagreed about what is broken.
+        broken_here = unresolved_wikilinks(read_text_cached(path), set(pages))
         if broken_here:
             page_broken[f"{path.relative_to(WIKI).as_posix()}"] = broken_here
 

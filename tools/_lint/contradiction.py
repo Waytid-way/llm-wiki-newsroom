@@ -1168,23 +1168,27 @@ def _emit_rewrite_block_aggregate(claim_count: int, theme_count: int) -> None:
     consumes all theme MDs + JSON stats, and rewrites the aggregate
     document. Mechanical fixes are not applicable here (the aggregate
     file has no AUTO blocks or skeleton target state).
+
+    C52 — `theme_count` is the NON-fragmentary theme count (the F2 gate's
+    comparison basis). The block states the exclusion explicitly so Claude
+    writes the `M topic clusters` stat the gate expects.
     """
     print()
     print("=" * 72)
     print("[/wiki-lint contradiction aggregate --fix] Claude rewrite instruction block")
     print("=" * 72)
     print("Target: wiki/contradiction.md (L2-4 aggregate contradictions)")
-    print(f"Current JSON SoT: claims={claim_count} · themes={theme_count} (non-fragmentary + other-fragmentary)")
+    print(f"Current JSON SoT: claims={claim_count} · themes={theme_count} (non-fragmentary; `other-fragmentary` excluded — F2 gate basis)")
     print()
     print("Execution order (Claude):")
     print("  1. Read .claude/layers/contradiction.md → Part 2 (Aggregate Rubric)")
     print("  2. Read wiki/contradictions/_contradictions_themes.json → all theme slug·name·claim_ids")
     print("  3. Read wiki/contradictions/_contradictions.json → total claim count·type distribution")
     print("  4. Read wiki/contradiction.md (current state — to capture reusable implications and tension-axis naming)")
-    print(f"  5. Read all {theme_count} theme MDs (`wiki/contradictions/<theme>.md`) — gather bottom-up consolidation material centered on each `## Opposing Positions`·`## Interpretive Direction`")
+    print(f"  5. Read the {theme_count} non-fragmentary theme MDs plus `other-fragmentary` (`wiki/contradictions/<theme>.md`) — gather bottom-up consolidation material centered on each `## Opposing Positions`·`## Interpretive Direction`")
     print("  6. Decide whether to keep the tension axes — keep the current axes named in `## Per-Theme Deep Analysis` by default. Only check whether the themes can be placed, and redesign the axes only when 2+ themes don't fit the existing axes")
     print("  7. Authoring Guide Part 2 → perform execution step 6 (rewrite the whole file with the Write tool · no frontmatter, starting from `# Contradictions by Topic`)")
-    print("  8. Match head-matter statistics to SoT: `**N source-to-source contradictions**`·`M topic clusters` (F2 criterion · use the current JSON claims/themes values as-is)")
+    print(f"  8. Match head-matter statistics to SoT: `**N source-to-source contradictions**`·`M topic clusters` (F2 criterion — M counts the {theme_count} NON-fragmentary themes above; `other-fragmentary` is a residual bucket and never counts toward M)")
     print("  9. Re-run `python tools/lint.py contradiction aggregate` → check Rubric L2-4 metrics")
     p2 = _roster_counts("contradiction-aggregate")
     print(f" 10. Iterate until {threshold_label(p2)} is achieved")
@@ -1697,9 +1701,15 @@ def run(target: str | None = None, fix: bool = False, auto_yes: bool = False) ->
     # invocation" principle from CLAUDE.md (`/wiki-lint --fix` / `all --fix`
     # never triggers a Claude rewrite; only `/wiki-lint contradiction <target> --fix` does).
     if fix and scope == "aggregate":
+        # C52 — the F2 gate (_check_contradictions_md) compares the head-matter
+        # `M topic clusters` stat against the NON-fragmentary theme count, so the
+        # rewrite block must hand Claude that same number — not len(themes) which
+        # includes the `other-fragmentary` residual bucket.
         _emit_rewrite_block_aggregate(
             claim_count=len(claims),
-            theme_count=len(themes_doc.get("themes", {})),
+            theme_count=sum(
+                1 for s in themes_doc.get("themes", {}) if s != "other-fragmentary"
+            ),
         )
     elif fix and only_theme is not None:
         _emit_rewrite_block(only_theme, themes_doc)
