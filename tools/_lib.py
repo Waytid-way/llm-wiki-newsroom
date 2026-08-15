@@ -435,6 +435,54 @@ def _unquote_scalar(val: str) -> str:
     return val
 
 
+def _split_inline_list(val: str) -> list[str]:
+    """Split a YAML inline-list body on commas that sit *outside* quotes.
+
+    ``source: ["a", "b,c"]`` must yield ``["a", "b,c"]``, not ``["a", "b",
+    "c"]`` — a comma inside a quoted item is data, not a separator. Both
+    double-quoted items (with ``\\"`` / ``\\\\`` escapes) and single-quoted
+    items (with ``''`` escapes) are tracked, so escaped quotes don't toggle
+    the quote state. Surrounding quotes are left on each returned item for
+    ``_unquote_scalar`` to strip; empty items are preserved for the caller's
+    truthiness filter (mirrors the old ``split(",")`` + ``if x.strip()``
+    semantics for quote-free input).
+    """
+    items: list[str] = []
+    cur: list[str] = []
+    quote: str | None = None
+    i = 0
+    n = len(val)
+    while i < n:
+        ch = val[i]
+        if quote == '"':
+            cur.append(ch)
+            if ch == "\\" and i + 1 < n:
+                cur.append(val[i + 1])
+                i += 2
+                continue
+            if ch == '"':
+                quote = None
+        elif quote == "'":
+            cur.append(ch)
+            if ch == "'" and i + 1 < n and val[i + 1] == "'":
+                cur.append("'")
+                i += 2
+                continue
+            if ch == "'":
+                quote = None
+        elif ch in ('"', "'"):
+            quote = ch
+            cur.append(ch)
+        elif ch == ",":
+            items.append("".join(cur).strip())
+            cur = []
+        else:
+            cur.append(ch)
+        i += 1
+    items.append("".join(cur).strip())
+    return items
+
+
 def parse_frontmatter(text: str) -> dict:
     """Parse YAML frontmatter into a dict. Supports:
       - Scalars: `key: value` (quotes stripped)
@@ -480,9 +528,9 @@ def parse_frontmatter(text: str) -> dict:
 
         if val.startswith("["):
             items = [
-                _unquote_scalar(x.strip())
-                for x in val.strip("[]").split(",")
-                if x.strip()
+                _unquote_scalar(x)
+                for x in _split_inline_list(val.strip("[]"))
+                if x
             ]
             out[key] = items
             current_list_key = None
@@ -499,6 +547,41 @@ def parse_frontmatter(text: str) -> dict:
             current_list_key = None
 
     return out
+
+
+def _is_abbrev_period(text: str, idx: int) -> bool:
+    """True when the period at `idx` closes an abbreviation, not a sentence.
+
+    Heuristic: the maximal run of uppercase letters immediately before the
+    period is 1-2 chars long (`U.S.`, `D.C.`, `J.R.R.`, `AI.`). A period
+    following a longer uppercase token (`THE END.`) or any non-uppercase
+    token (`ends.`, `e.g.`) is treated as a sentence end. Conservative by
+    design — the 1-2-uppercase pattern is overwhelmingly an initial/abbrev
+    in prose, and false *splits* (chopping `U.S. Army` to `U.S`) are the
+    worse failure mode this guards against.
+    """
+    start = idx
+    while start > 0 and text[start - 1].isupper():
+        start -= 1
+    return 1 <= idx - start <= 2
+
+
+def _description_cut(description: str) -> int:
+    """Index just past the first sentence boundary in `description`, or -1.
+
+    Preserves the original separator priority (`. ` over `? ` over `! ` over
+    bare `.`/`?`/`!`, first occurrence wins) but skips abbreviation periods
+    (`U.S.`) so a description is not chopped mid-abbreviation; the scan
+    continues past a skipped period to the next occurrence of the same
+    separator.
+    """
+    for sep in [". ", "? ", "! ", ".", "?", "!"]:
+        idx = description.find(sep)
+        while idx != -1 and sep[0] == "." and _is_abbrev_period(description, idx):
+            idx = description.find(sep, idx + 1)
+        if idx != -1:
+            return idx + len(sep)
+    return -1
 
 
 def parse_page_meta(content: str, filename: str) -> tuple[str, str, str, str, str, str]:
@@ -561,14 +644,11 @@ def parse_page_meta(content: str, filename: str) -> tuple[str, str, str, str, st
 
     if description:
         description = re.sub(r'\[\[([^|\]]*\|)?([^\]]+)\]\]', r'\2', description)
-        for sep in ['. ', '? ', '! ', '.', '?', '!']:
-            idx = description.find(sep)
-            if idx != -1:
-                description = description[:idx + len(sep)].rstrip()
-                break
-        else:
-            if len(description) > 120:
-                description = description[:117].rsplit(" ", 1)[0] + "…"
+        cut = _description_cut(description)
+        if cut != -1:
+            description = description[:cut].rstrip()
+        elif len(description) > 120:
+            description = description[:117].rsplit(" ", 1)[0] + "…"
 
     return title, page_type, description, source_file, date, source_url
 

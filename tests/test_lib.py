@@ -73,6 +73,34 @@ def test_frontmatter_block_re_group():
     assert FRONTMATTER_BLOCK_RE.match("body first\n---\n") is None
 
 
+def test_parse_frontmatter_inline_list_quoted_comma():
+    # C11: a comma inside a quoted item is data, not a separator — the old
+    # `split(",")` path wrongly produced ['a', '"b', 'c"'].
+    fm = parse_frontmatter('---\nsource: ["a", "b,c"]\n---\n')
+    assert fm["source"] == ["a", "b,c"]
+
+
+def test_parse_frontmatter_inline_list_mixed_and_empty():
+    # Quoted (double/single), unquoted, and empty items coexist; empty items
+    # are dropped by the same truthiness filter the pre-fix path used.
+    fm = parse_frontmatter("---\ntags: [alpha, , \"b,c\", 'd,e']\n---\n")
+    assert fm["tags"] == ["alpha", "b,c", "d,e"]
+
+
+def test_parse_frontmatter_inline_list_escaped_quote_with_comma():
+    # An escaped quote inside a double-quoted item doesn't toggle quote
+    # state, so the comma after the closing quote still splits items.
+    fm = parse_frontmatter('---\nsource: ["say \\"hi\\", then go", plain]\n---\n')
+    assert fm["source"] == ['say "hi", then go', "plain"]
+
+
+def test_parse_frontmatter_inline_list_does_not_affect_block_lists():
+    # Block-style lists never split on commas — quoted commas stay intact
+    # there both before and after the C11 fix.
+    fm = parse_frontmatter('---\nsources:\n- "one, two"\n- three\n---\n')
+    assert fm["sources"] == ["one, two", "three"]
+
+
 def test_parse_page_meta_title_and_description():
     title, ptype, desc, _sf, date, _su = parse_page_meta(
         "---\n"
@@ -87,6 +115,56 @@ def test_parse_page_meta_title_and_description():
     )
     assert (title, ptype, date) == ("T", "entity", "2026-01-02")
     assert desc == "이것이 첫 본문 문단이다."
+
+
+def test_parse_page_meta_description_abbreviation_period_not_truncated():
+    # C12: `U.S.` periods are abbreviation periods, not sentence ends — the
+    # old code chopped `U.S. Army` to `U.S`.
+    _, _, desc, *_ = parse_page_meta(
+        "---\ntitle: T\ntype: entity\n---\nU.S. Army troops advanced.\n",
+        "t.md",
+    )
+    assert desc == "U.S. Army troops advanced."
+
+
+def test_parse_page_meta_description_skips_abbrev_to_real_sentence_end():
+    # The scan skips the abbreviation period and cuts at the actual sentence
+    # boundary that follows it.
+    _, _, desc, *_ = parse_page_meta(
+        "---\ntitle: T\ntype: entity\n---\nBased in D.C. It deploys next month. Reports follow.\n",
+        "t.md",
+    )
+    assert desc == "Based in D.C. It deploys next month."
+
+
+def test_parse_page_meta_description_plain_period_still_truncates():
+    # Sentence-ending periods without abbreviations keep truncating.
+    _, _, desc, *_ = parse_page_meta(
+        "---\ntitle: T\ntype: entity\n---\nEnds. Next sentence.\n",
+        "t.md",
+    )
+    assert desc == "Ends."
+
+
+def test_parse_page_meta_description_long_uppercase_word_not_abbrev():
+    # A 3+ uppercase-letter run before the period is a sentence end, not an
+    # abbreviation initial.
+    _, _, desc, *_ = parse_page_meta(
+        "---\ntitle: T\ntype: entity\n---\nTHE END. Next.\n",
+        "t.md",
+    )
+    assert desc == "THE END."
+
+
+def test_parse_page_meta_description_lowercase_abbrev_not_protected():
+    # Documented behavior: the conservative heuristic only protects 1-2
+    # uppercase letters before the period, so `e.g.` still truncates at the
+    # first period exactly as it did pre-fix.
+    _, _, desc, *_ = parse_page_meta(
+        "---\ntitle: T\ntype: entity\n---\ne.g. example usage here.\n",
+        "t.md",
+    )
+    assert desc == "e.g."
 
 
 # ---------------------------------------------------------------- wikilink family
