@@ -1,6 +1,7 @@
 ---
 title: "Harness Engineering"
 type: concept
+description: "Harness engineering builds the environment/machine around the model — the layer where tools, files, and world interaction happen; sits between context and loop in the prompt→context→harness→loop→graph ladder."
 tags: [ai-agents, workflows, agent-architecture]
 sources: [graph-engineering-whrrari]
 last_updated: 2026-08-16

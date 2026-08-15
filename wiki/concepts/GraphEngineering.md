@@ -1,6 +1,7 @@
 ---
 title: "Graph Engineering"
 type: concept
+description: "Graph engineering designs AI agents as explicit execution maps (nodes/edges/state/routers/gates) instead of a single model loop; sequence is not dependency, topology is the cost model, the model is only one node."
 tags: [graph-engineering, ai-agents, workflows, agent-architecture]
 sources: [graph-engineering-whrrari]
 last_updated: 2026-08-16

@@ -1,6 +1,7 @@
 ---
 title: "Agent Loop"
 type: concept
+description: "Agent loop engineering improves a single agent through feedback; a loop helps one agent improve its work while a graph coordinates many loops into one system."
 tags: [ai-agents, loop-engineering, workflows]
 sources: [graph-engineering-whrrari]
 last_updated: 2026-08-16

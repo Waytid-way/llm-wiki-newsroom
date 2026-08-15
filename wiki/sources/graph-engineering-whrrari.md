@@ -1,6 +1,7 @@
 ---
 title: "Graph Engineering: ออกแบบ AI Agent ให้เป็นกราฟ (บทความ @0xwhrrari)"
 type: source
+description: "Thai summary of @0xwhrrari's X article on graph engineering — designing AI agents as explicit execution graphs (nodes/edges/state/routers/gates) instead of linear chains; 4 core shapes (chain/diamond/router/controlled cycle), node contracts, verifiers at edges, durable state, per-node failure policies, cost topology; covers OpenAI AgentKit and Claude Managed Agents announcements."
 tags: [graph-engineering, ai-agents, agent-architecture, workflows]
 published: 2026-08-10
 scraped: 2026-08-16
@@ -29,7 +30,7 @@ last_updated: 2026-08-16
 - [analysis] @0xwhrrari — ออกแบบความล้มเหลวเฉพาะจุด: RETRY (ชั่วคราว) / FALLBACK (โมเดล/source ไม่พร้อม) / SKIP (branch optional) / REPAIR (output ไม่ผ่าน) / ESCALATE (เสี่ยงเกินเกณฑ์) / STOP (ขอบเขตงบฯ/ความปลอดภัย); checkpoint หลัง node แพง, writes idempotent, worker workspace แยกกัน, log ทุก routing decision
 - [analysis] @0xwhrrari — topology คือ cost model: โมเดลถูกสำหรับงานจำกัดขอบเขต (extraction, classification, formatting), โมเดลแรงสำหรับ decomposition, synthesis และ hard verification; multi-agent research ดีกว่าแบบ breadth-first แต่ token แพงกว่ามาก — tradeoff
 - [fact] OpenAI (@OpenAIDevs, 2025-10-07) — ประกาศ AgentKit ประกอบด้วย ChatKit, Agent Builder (WYSIWYG workflow builder), Guardrails, Evals — ตัวอย่างว่า agent behavior ถูกออกแบบเป็น workflow ที่ตรวจสอบได้ (ทวีต 2.9 ล้านวิว)
-- [fact] Anthropic (Claude Managed Agents, 2026-04-09) — production research ระดับใหญ่: lead agent + subagents ทำงานพร้อมกัน, synthesis, และ citation gate ก่อนผลถึงผู้ใช้ (ทวีต 21 ล้านวิว)
+- [fact] Anthropic (Claude Managed Agents, ประกาศ 9 เมษายน — ปี 2026 ตามบริบทของบทความ) — production research ระดับใหญ่: lead agent + subagents ทำงานพร้อมกัน, synthesis, และ citation gate ก่อนผลถึงผู้ใช้ (ทวีต 21 ล้านวิว)
 - [analysis] @0xwhrrari — ไม่ใช่ทุกงานต้องเป็นกราฟ: ใช้ single loop เมื่องานสั้น, context พอ, ไม่มี branch อิสระ, ความล้มเหลวต้นทุนต่ำ, มนุษย์รีวิวไว; "เริ่มด้วย loop เดียว วาดกราฟเมื่อ dependency บังคับ"
 - [analysis] @0xwhrrari — ลำดับชั้นวิวัฒนาการ: PROMPT → CONTEXT → HARNESS → [[AgentLoop|LOOP]] → [[GraphEngineering|GRAPH]] จับคู่กับ message, memory, machine, run, coordination — "The model is only one node. The product is the system around it."
 
