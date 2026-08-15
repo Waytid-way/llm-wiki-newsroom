@@ -39,6 +39,8 @@ from _lib import GRAPH, GRAPH_JSON, WIKI, atomic_write_text, _build_id_map  # no
 
 
 def run() -> None:
+    if not GRAPH_JSON.exists():
+        raise SystemExit("graph/_graph.json missing — run the graph phase first (`python tools/build.py graph`).")
     graph_data = json.loads(GRAPH_JSON.read_text(encoding="utf-8"))
 
     # Node set mirrors _graph.json exactly (ROOT_META already excluded there,

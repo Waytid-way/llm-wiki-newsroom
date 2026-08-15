@@ -34,7 +34,10 @@ def parse_week(s: str) -> tuple[int, int]:
     m = _WEEK_RE.match(s.strip())
     if not m:
         raise ValueError(f"--week must be in 'YYYY-Www' format (e.g. 2026-W23): {s!r}")
-    return int(m.group(1)), int(m.group(2))
+    year, week = int(m.group(1)), int(m.group(2))
+    if not 1 <= week <= 53:
+        raise ValueError(f"--week week must be 01-53 (got {week:02d}): {s!r}")
+    return year, week
 
 
 def last_completed_week(today: date | None = None) -> tuple[int, int]:

@@ -1,7 +1,7 @@
 """Build knowledge graph from wiki pages.
 
 Writes graph/_graph.json with EXTRACTED wikilink edges plus INFERRED
-edges between pages sharing 3+ common link targets.
+edges between pages sharing 5+ common link targets.
 
 Wikilink targets are normalized to canonical node IDs at emit time via
 _build_id_map — the raw `[[신한은행]]` text is resolved to
@@ -59,6 +59,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import (  # noqa: E402
     GRADE_MARKER_RE,
     GRAPH_JSON,
+    H2_RE,
     HUB_PREFIXES,
     WIKI,
     WIKILINK_STEM_RE,
@@ -80,7 +81,6 @@ ROOT_META = {
 # them here drops both their nodes and their meta→member edges from
 # _graph.json.
 META_NODE_TYPES = {"overview", "contradiction", "synthesis", "timeline", "trail"}
-BASE_NODE_TYPES = {"source", "entity", "concept"}
 
 
 def _title_and_type(content: str) -> tuple[str, str]:
@@ -94,11 +94,6 @@ def _title_and_type(content: str) -> tuple[str, str]:
 _LABELED_LINK_RE = re.compile(r"\[\[([^\]|#]+)(?:[#|][^\]]*)?\]\]\s*(?:—|--)\s*(.+?)(?:\n|$)")
 # All wikilinks (used for the second dedup-aware pass). Stem only, anchor stripped.
 _ANY_LINK_RE = WIKILINK_STEM_RE
-
-# H2 section header at line start. Used to slice each file into
-# (start, end, section_title) spans so each wikilink can be tagged with
-# the relation_type implied by its enclosing section.
-_H2_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 
 # Priority order for resolving multiple sections referencing the same target
 # within a single source file. Higher = wins.
@@ -155,7 +150,7 @@ def _section_spans(content: str, rel: str) -> list[tuple[int, int, str]]:
     Pre-section content (frontmatter, intro, H1) maps to the empty section
     title and resolves to "references" via _section_to_relation.
     """
-    matches = list(_H2_RE.finditer(content))
+    matches = list(H2_RE.finditer(content))
     if not matches:
         return [(0, len(content), _section_to_relation(rel, ""))]
     spans: list[tuple[int, int, str]] = []

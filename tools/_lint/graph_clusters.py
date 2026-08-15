@@ -83,7 +83,6 @@ def _regenerate_sot() -> None:
     skipped to keep `graph --fix` from silently editing overview MDs.
     """
     print("[graph clusters --fix] regenerating SoT JSONs (graph + clusters)...")
-    sys.path.insert(0, str(Path(__file__).parent.parent))
     from _build import graph as graph_build, clusters as clusters_build  # noqa: E402
 
     graph_build.run()
@@ -134,7 +133,7 @@ def _find_fragile_bridges(graph_data: dict, clusters_data: dict) -> list[dict]:
     pair_counts: Counter[tuple[str, str]] = Counter()
     pair_sample: dict[tuple[str, str], dict[str, str]] = {}
     for edge in graph_data.get("edges", []):
-        from_id = edge.get("from") if edge.get("from") in nodes_by_id else None
+        from_id = _resolve_edge_target(edge.get("from", ""), nodes_by_id, id_map)
         to_id = _resolve_edge_target(edge.get("to", ""), nodes_by_id, id_map)
         if not from_id or not to_id:
             continue

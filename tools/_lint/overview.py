@@ -33,7 +33,7 @@ from datetime import date as _date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import CLUSTER_LABELS_JSON, CLUSTERS_JSON, WIKI, WIKILINK_ANY_RE, WIKILINK_RE as _LIB_WIKILINK_RE, WIKILINK_TARGET_RE, atomic_write_text, confirm_changes, korean_mode, parse_frontmatter, print_delete_cleanup_advisory, read_text_cached, safe_slug_path, slug_only, strip_frontmatter  # noqa: E402
+from _lib import CLUSTER_LABELS_JSON, CLUSTERS_JSON, H2_RE, WIKI, WIKILINK_ANY_RE, WIKILINK_RE as _LIB_WIKILINK_RE, WIKILINK_TARGET_RE, atomic_write_text, confirm_changes, korean_mode, parse_frontmatter, print_delete_cleanup_advisory, read_text_cached, safe_slug_path, slug_only, strip_frontmatter  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _advisory_common import mark  # noqa: E402
@@ -88,10 +88,6 @@ LEAD_SECTION_HEADING = "## Overview"
 # injects thresholds·algorithm params from the manifest and calls the skill. The
 # dual prose/code threshold is gone — the manifest is the single SoT.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_ENC_CHECKS_PATH = _REPO_ROOT / ".claude" / "skills" / "encyclopedia-writing" / "checks.py"
-_enc_spec = importlib.util.spec_from_file_location("enc_checks", _ENC_CHECKS_PATH)
-enc_skill = importlib.util.module_from_spec(_enc_spec)
-_enc_spec.loader.exec_module(enc_skill)
 
 _MANIFEST = json.loads(
     (_REPO_ROOT / ".claude" / "layers" / "_manifest.json").read_text(encoding="utf-8")
@@ -108,12 +104,12 @@ _L24_W1_PARAMS = _L24["enc.link-density"]["params"]
 _L24_W3_THRESHOLD = _L24["enc.first-mention"]["threshold"]      # =0
 _L24_W3_PARAMS = _L24["enc.first-mention"]["params"]
 
-# L2-4 aggregate D-series measurement — con(D1 MECE)·enc(D2 drill·F1 coatrack)·jrn(D3 balance).
 def _load_skill(name, alias):
     spec = importlib.util.spec_from_file_location(alias, _REPO_ROOT / ".claude" / "skills" / name / "checks.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+enc_skill = _load_skill("encyclopedia-writing", "enc_checks_ov")
 con_skill = _load_skill("consulting-writing", "con_checks_ov")
 jrn_skill = _load_skill("journalism-writing", "jrn_checks_ov")
 # The cit G1·G2 schema meta-use measurement is owned by the scholarly-citation
@@ -414,22 +410,25 @@ def _check_cluster_name_drift(
 
 def _split_sections(editor: str) -> dict[str, str]:
     """Split AUTO-stripped overview text into {`## <title>`: body} sections —
-    preamble before the first H2 keyed `_preamble`; `###` subheaders stay in body."""
-    sections: dict[str, str] = {}
-    current = "_preamble"
-    buffer: list[str] = []
-    for line in editor.splitlines():
-        m = re.match(r"^##\s+(.+?)\s*$", line)
-        if m and not line.startswith("###"):
-            if buffer:
-                sections[current] = "\n".join(buffer)
-            current = f"## {m.group(1).strip()}"
-            buffer = []
-        else:
-            buffer.append(line)
-    if buffer:
-        sections[current] = "\n".join(buffer)
-    return sections
+    preamble before the first H2 keyed `_preamble`; `###` subheaders stay in body.
+    MOVE-not-COPY: consumes the encyclopedia skill's splitter (single SoT)."""
+    return enc_skill._split_h2_sections(editor)
+
+
+def _house_style_metrics(editor: str) -> dict[str, list]:
+    """R1·L2·S6 house-style measurements shared by the L2-3 (`_link_metrics`)
+    and L2-4 (`_check_overview_md`) paths — one copy so a threshold change
+    cannot silently diverge between the two verdicts."""
+    return {
+        "r1_hot": _r1_hot_tokens(editor),
+        "r2": con_skill.count_density_violations(editor, max_per_para=_R2_MAX_PARA),
+        "b1": enc_skill.find_verdict_hits(editor),
+        "l1": enc_skill.find_unaliased_slugs(editor, min_len=_L1_MIN_LEN),
+        "l2": _l2_date_violations(editor),
+        "l3": enc_skill.find_abbr_violations(editor),
+        "s6_long": _s6_long_sentences(editor),
+        "s6_para_anti": _s6_paragraph_no_period(editor),
+    }
 
 
 def _link_metrics(content: str) -> dict:
@@ -481,14 +480,7 @@ def _link_metrics(content: str) -> dict:
             contradiction_refs += 1
 
     # R1·L2·S6 are house-style (remain in overview.py). R2→con, B1·L1·L3 moved to the enc skill.
-    r1_hot = _r1_hot_tokens(editor)
-    r2_violations = con_skill.count_density_violations(editor, max_per_para=_R2_MAX_PARA)
-    b1_hits = enc_skill.find_verdict_hits(editor)
-    l1_violations = enc_skill.find_unaliased_slugs(editor, min_len=_L1_MIN_LEN)
-    l2_violations = _l2_date_violations(editor)
-    l3_violations = enc_skill.find_abbr_violations(editor)
-    s6_long = _s6_long_sentences(editor)
-    s6_para_anti = _s6_paragraph_no_period(editor)
+    hs = _house_style_metrics(editor)
 
     # G1·G2 — Phase 2 source schema meta-use (advisory, new dimension 7).
     # The body should differentiate a source's evidence grade (data/analysis/
@@ -507,14 +499,14 @@ def _link_metrics(content: str) -> dict:
         "duplicates": duplicates,
         "dup_total": dup_total,
         "contradiction_refs": contradiction_refs,
-        "r1_hot": r1_hot,
-        "r2_violations": r2_violations,
-        "b1_hits": b1_hits,
-        "l1_violations": l1_violations,
-        "l2_violations": l2_violations,
-        "l3_violations": l3_violations,
-        "s6_long": s6_long,
-        "s6_para_anti": s6_para_anti,
+        "r1_hot": hs["r1_hot"],
+        "r2_violations": hs["r2"],
+        "b1_hits": hs["b1"],
+        "l1_violations": hs["l1"],
+        "l2_violations": hs["l2"],
+        "l3_violations": hs["l3"],
+        "s6_long": hs["s6_long"],
+        "s6_para_anti": hs["s6_para_anti"],
         "g1_grade_meta": g1_grade_meta,
         "g2_cite_type_meta": g2_cite_type_meta,
     }
@@ -1064,7 +1056,7 @@ def _path_has_git_history(path: Path) -> bool:
     """
     try:
         result = subprocess.run(
-            ["git", "log", "--oneline", "--", str(path)],
+            ["git", "-C", str(Path(path).parent), "log", "--oneline", "--", str(path)],
             capture_output=True, timeout=5, check=False,
         )
         stdout = (result.stdout or b"").decode("utf-8", errors="replace")
@@ -1165,7 +1157,7 @@ def _check_overviews(clusters_data: dict, fix: bool, only_slug: str | None = Non
             corrected = False
             if fix:
                 new_content = re.sub(
-                    rf'(?m)^cluster:\s*{re.escape(old_cluster)}\s*$',
+                    rf'(?m)^cluster:\s*["\']?{re.escape(old_cluster)}["\']?\s*$',
                     f'cluster: {slug}',
                     content,
                     count=1,
@@ -1265,7 +1257,7 @@ def _check_overview_md(cluster_slugs: set[str]) -> tuple[list[str], list[str]]:
     for line in content.splitlines():
         if line.startswith("# ") and not line.startswith("## "):
             continue
-        m = re.match(r"^##\s+(.+?)\s*$", line)
+        m = H2_RE.match(line)
         if m and not line.startswith("###"):
             if current_section is not None:
                 body_sections[current_section] = "\n".join(section_buffer)
@@ -1356,14 +1348,10 @@ def _check_overview_md(cluster_slugs: set[str]) -> tuple[list[str], list[str]]:
     # keeps the marker tokens (AUTO·STATS·BEGIN·END)·raw [[slug]] in AUTO:STATS/SOURCES/MEMBERS
     # from being false-flagged as L3/L1. W1·W2·W3·D-series intentionally measure raw content (see above).
     editor = AUTO_BLOCK_RE.sub("", content)
-    r1_hot = _r1_hot_tokens(editor)
-    r2_violations = con_skill.count_density_violations(editor, max_per_para=_R2_MAX_PARA)
-    b1_hits = enc_skill.find_verdict_hits(editor)
-    l1_raw = enc_skill.find_unaliased_slugs(editor, min_len=_L1_MIN_LEN)
-    l2_violations = _l2_date_violations(editor)
-    l3_violations = enc_skill.find_abbr_violations(editor)
-    s6_long = _s6_long_sentences(editor)
-    s6_para_anti = _s6_paragraph_no_period(editor)
+    hs = _house_style_metrics(editor)
+    r1_hot, r2_violations, b1_hits, l1_raw = hs["r1_hot"], hs["r2"], hs["b1"], hs["l1"]
+    l2_violations, l3_violations = hs["l2"], hs["l3"]
+    s6_long, s6_para_anti = hs["s6_long"], hs["s6_para_anti"]
 
     r1_ok = len(r1_hot) == 0
     r2_ok = len(r2_violations) <= _R2_VIOL_MAX

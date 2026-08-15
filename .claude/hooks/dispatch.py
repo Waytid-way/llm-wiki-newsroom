@@ -10,6 +10,8 @@ Usage (from dispatch.sh): `python dispatch.py pre|post` with hook JSON on stdin.
 Exit codes: 0 advisory/no-op (stdout JSON additionalContext), 2 blocking
 (stderr message — lint-report asymmetry guard only).
 """
+from __future__ import annotations
+
 import json
 import os
 import re
@@ -60,7 +62,7 @@ def _drift_group_counts(scan: str) -> tuple[int, int]:
 AUTO_MARKER_RE = re.compile(r"<!--\s*AUTO:")
 # Ponytail advisory scope — project scripts: tools/ Python + the hook layer
 # itself (.claude/hooks/ py|sh); hook code is as prone to accretion as tools/.
-PONYTAIL_RE = re.compile(r"/tools/.*\.py$|/\.claude/hooks/.*\.(py|sh)$")
+PONYTAIL_RE = re.compile(r"(?:^|/)tools/.*\.py$|(?:^|/)\.claude/hooks/.*\.(py|sh)$")
 SCRATCH_EXTS = {".py", ".sh", ".tmp", ".scratch", ".ipynb"}
 # Repo root derived from this hook's own location (<root>/.claude/hooks/dispatch.py)
 # so the scratch advisory fires regardless of the clone directory name.
@@ -400,7 +402,7 @@ def run_pre(data: dict) -> int:
     if "/plans/" in path and path.endswith(".md"):
         messages.append(PLAN_MSG)
     elif path.endswith(".md") and (
-        path.endswith("/CLAUDE.md") or any(d in path for d in GUIDE_DIRS)
+        os.path.basename(path) == "CLAUDE.md" or any(d in path for d in GUIDE_DIRS)
     ):
         msg = GUIDE_MSG
         try:
@@ -423,7 +425,7 @@ def run_pre(data: dict) -> int:
         parent = path.rsplit("/", 1)[0] if "/" in path else ""
         basename = path.rsplit("/", 1)[-1]
         ext = ("." + basename.rsplit(".", 1)[-1]).lower() if "." in basename else ""
-        if parent.lower() == _REPO_ROOT and ext in SCRATCH_EXTS:
+        if (parent.lower() == _REPO_ROOT or parent in ("", ".")) and ext in SCRATCH_EXTS:
             messages.append(SCRATCH_MSG_TMPL.format(basename=basename))
 
     # 4) ponytail advisory — project-script authoring (generation-time reflex).

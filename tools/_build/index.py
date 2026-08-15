@@ -38,6 +38,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import (  # noqa: E402
+    REPO_ROOT,
     WIKI as wiki,
     CLUSTERS_JSON,
     GRAPH_JSON,
@@ -390,7 +391,7 @@ def run() -> None:
         # lookup misses, the article looks new, a duplicate source page is
         # almost created). Surface as advisory; the deep audit + autofix
         # lives in `python tools/lint.py graph raw-files [--fix]`.
-        if not (Path(source_file).is_file() or Path(norm_path).is_file()):
+        if not ((REPO_ROOT / source_file).is_file() or (REPO_ROOT / norm_path).is_file()):
             missing_raw.append((slug, source_file))
 
     source_map = {"by_url": by_url, "by_path": by_path}

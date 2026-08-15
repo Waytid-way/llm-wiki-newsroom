@@ -21,9 +21,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))  # _query/ → tools/ root
 # _lib import also reconfigures stdout/stderr to UTF-8 (Windows cp949 console).
 from _lib import CLUSTERS_JSON, GRAPH_JSON, _build_id_map  # noqa: E402
 
-GRAPH_PATH = GRAPH_JSON
-CLUSTERS_PATH = CLUSTERS_JSON
-
 DEFAULT_BUDGET = 60
 
 # Hyper-G typed edge relations (2026-05-02). EXTRACTED edges carry one of
@@ -155,22 +152,20 @@ def _print_budgeted(lines: list[str], budget: int) -> None:
 # ───────────────────────── subcommands ─────────────────────────
 
 def cmd_path(args) -> int:
-    g_data = _load(GRAPH_PATH)
-    clusters_data = _load(CLUSTERS_PATH) if CLUSTERS_PATH.exists() else {}
+    g_data = _load(GRAPH_JSON)
+    clusters_data = _load(CLUSTERS_JSON) if CLUSTERS_JSON.exists() else {}
     id_map = _build_id_map(g_data["nodes"])
     nodes_by_id = {n["id"]: n for n in g_data["nodes"]}
 
     src = _resolve(args.src, id_map)
     dst = _resolve(args.dst, id_map)
-    edge_filter = _parse_edge_filter(getattr(args, "edge_type", None))
+    edge_filter = _parse_edge_filter(args.edge_type)
 
     # _build_nx_graph first so its ImportError → friendly install-hint fires
     # before the bare `import networkx` (needed below for NetworkXNoPath).
     G = _build_nx_graph(g_data["nodes"], g_data["edges"], id_map, edge_filter=edge_filter)
     import networkx as nx
 
-    if src not in G or dst not in G:
-        raise SystemExit(f"Node missing from graph: {src if src not in G else dst}")
     try:
         path = nx.shortest_path(G, src, dst, weight="cost")
     except nx.NetworkXNoPath:
@@ -236,11 +231,11 @@ def cmd_path(args) -> int:
 
 
 def cmd_explain(args) -> int:
-    g_data = _load(GRAPH_PATH)
-    clusters_data = _load(CLUSTERS_PATH) if CLUSTERS_PATH.exists() else {}
+    g_data = _load(GRAPH_JSON)
+    clusters_data = _load(CLUSTERS_JSON) if CLUSTERS_JSON.exists() else {}
     id_map = _build_id_map(g_data["nodes"])
     nodes_by_id = {n["id"]: n for n in g_data["nodes"]}
-    edge_filter = _parse_edge_filter(getattr(args, "edge_type", None))
+    edge_filter = _parse_edge_filter(args.edge_type)
 
     nid = _resolve(args.node, id_map)
     node = nodes_by_id[nid]
@@ -340,7 +335,7 @@ def cmd_explain(args) -> int:
             lines.append(f"  → {e['label']}{cl_str}{r}")
         lines.append("")
     if rationales:
-        lines.append(f"Rationale edges (the 'why' of connections):")
+        lines.append("Rationale edges (the 'why' of connections):")
         for r in rationales[:8]:
             snippet = r["rationale"]
             if len(snippet) > 90:
@@ -352,11 +347,11 @@ def cmd_explain(args) -> int:
 
 
 def cmd_neighbors(args) -> int:
-    g_data = _load(GRAPH_PATH)
-    clusters_data = _load(CLUSTERS_PATH) if CLUSTERS_PATH.exists() else {}
+    g_data = _load(GRAPH_JSON)
+    clusters_data = _load(CLUSTERS_JSON) if CLUSTERS_JSON.exists() else {}
     id_map = _build_id_map(g_data["nodes"])
     nodes_by_id = {n["id"]: n for n in g_data["nodes"]}
-    edge_filter = _parse_edge_filter(getattr(args, "edge_type", None))
+    edge_filter = _parse_edge_filter(args.edge_type)
 
     nid = _resolve(args.node, id_map)
 

@@ -365,15 +365,15 @@ try {
     'python tools/build.py');
   throw e;
 }
-const { nodes: rawNodes, edges: rawEdges, stats } = GRAPH_DATA;
+const { nodes: rawNodes, edges: rawEdges } = GRAPH_DATA;
 const allClusters = CLUSTERS_DATA.clusters || [];
 const ALL_OVERLAYS = (OVERLAYS_DATA && OVERLAYS_DATA.overlays) || [];
 const NODE_OVERLAYS = (OVERLAYS_DATA && OVERLAYS_DATA.node_overlays) || {};
 
-// --- Type palette — matches original graph.html; types not in this map
-// (overview, contradiction, timeline, trail) don't get a filter row but
-// their nodes still render if activeTypes includes them (which the
-// default does NOT — matches original behavior exactly).
+// --- Type palette — matches original graph.html; meta types (overview,
+// contradiction, synthesis, timeline, trail) are excluded from _graph.json
+// nodes by the build (META_NODE_TYPES), so only source/entity/concept ever
+// appear here; synthesis is kept in the palette map for color fallback only.
 const TYPE_COLORS = {
   source: '#4a90d9',
   entity: '#e6a23c',
@@ -381,7 +381,7 @@ const TYPE_COLORS = {
   synthesis: '#f56c6c',
   unknown: '#909399'
 };
-const DEFAULT_ACTIVE_TYPES = ['entity', 'concept', 'synthesis', 'source'];
+const DEFAULT_ACTIVE_TYPES = ['entity', 'concept', 'source'];
 
 // --- cluster resolution ---
 const clusterBySlug = {};
@@ -394,9 +394,6 @@ Object.entries(CLUSTERS_DATA.source_assignments || {}).forEach(([path, entry]) =
   if (clusterBySlug[entry.primary]) CLUSTER_BY_NODE[path] = entry.primary;
 });
 const uniqueSlugs = [...new Set(allClusters.map(c => c.slug))];
-const slugHubSize = {};
-allClusters.forEach(c => { slugHubSize[c.slug] = (slugHubSize[c.slug] || 0) + c.size; });
-
 // Per-cluster, per-type member counts. Hubs (entity/concept) come from
 // cluster.members; sources come from source_assignments primary mapping.
 // Used to compute the dynamic legend count, which shifts when the type
@@ -634,9 +631,9 @@ const urlInit = (() => {
 })();
 
 // --- Filter state ---
-// activeTypes / activeClusters are Sets we mutate in place on toggle.
-// URL-sourced subset takes precedence when present and non-empty after
-// validating against known slugs/types.
+// activeTypes is a Set mutated in place on toggle; activeClusters is
+// select-only (click = pin, URL-sourced subset takes precedence when present).
+// URL-sourced subsets are validated against known slugs/types.
 const activeTypes = new Set(urlInit.types || DEFAULT_ACTIVE_TYPES);
 const urlClusters = urlInit.clusters ? urlInit.clusters.filter(s => uniqueSlugs.includes(s)) : null;
 const activeClusters = new Set(urlClusters && urlClusters.length ? urlClusters : uniqueSlugs);
@@ -856,9 +853,6 @@ function serializeStateToUrl() {
     [...activeTypes].some(t => !defaultTypeSet.has(t));
   if (typesDiffer && activeTypes.size > 0) {
     p.set('types', [...activeTypes].sort().join(','));
-  }
-  if (activeClusters.size !== uniqueSlugs.length) {
-    p.set('clusters', [...activeClusters].sort().join(','));
   }
   if (egoRoot && egoDepth >= 1) {
     p.set('focus', egoRoot);
@@ -1214,7 +1208,6 @@ function getClusterCount(slug) {
   for (const t of activeTypes) total += counts[t] || 0;
   return total;
 }
-const legendCountEls = {};  // slug → count <span>, updated on type toggle
 const legendEl = document.getElementById('legend');
 uniqueSlugs.forEach(slug => {
   const c = clusterBySlug[slug];
@@ -1226,7 +1219,6 @@ uniqueSlugs.forEach(slug => {
   row.innerHTML =
     `<div class="legend-dot" style="--c:${color}"></div>` +
     `<span class="legend-name">${c.name} (<span class="legend-count">${getClusterCount(slug)}</span>)</span>`;
-  legendCountEls[slug] = row.querySelector('.legend-count');
   // Click = select this cluster: pin its hull + show overviews/<slug>.md in
   // the right panel (2026-06-01 — replaced the low-value visibility toggle).
   // Re-clicking the selected cluster deselects → root overview. Click-only:
@@ -2276,8 +2268,6 @@ const hullCanvas = document.getElementById('hull-overlay');         // below Sig
 const hullCtx = hullCanvas.getContext('2d');
 const hullTopCanvas = document.getElementById('hull-overlay-top');  // above Sigma (z:2) — region/cluster fill
 const hullTopCtx = hullTopCanvas.getContext('2d');
-let hoveredCluster = null;
-
 function resizeHullCanvas() {
   const rect = hullCanvas.parentElement.getBoundingClientRect();
   hullCanvas.width = rect.width;
@@ -2346,14 +2336,14 @@ function _paintHull(pred, color) {
 
 // Two canvases, opposite z-order (see #hull-overlay / #hull-overlay-top):
 //   TOP (above Sigma) — region/cluster hull FILL:
-//     1) cluster overview — hoveredCluster (transient) or selectedCluster (pinned)
+//     1) cluster overview — selectedCluster (pinned)
 //     2) region overlay   — regionLens (a region overlay on hover or pin)
 //   BOTTOM (below Sigma) — the path connector (so it stays under labels).
 // Path-overlay node/edge highlighting is done by the reducers, not here.
 function drawHull() {
   hullCtx.clearRect(0, 0, hullCanvas.width, hullCanvas.height);
   hullTopCtx.clearRect(0, 0, hullTopCanvas.width, hullTopCanvas.height);
-  const cl = hoveredCluster || selectedCluster;
+  const cl = selectedCluster;
   if (cl) _paintHull(n => CLUSTER_BY_NODE[n] === cl, CLUSTER_COLORS[cl]);
   if (regionLens && regionLens.memberIds) {
     _paintHull(n => regionLens.memberIds.has(n), regionLens.hullColor || regionLens.color || '#a48dff');

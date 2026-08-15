@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import WIKI, MARKUP_LEAK_RE, WIKILINK_TARGET_RE as LINK_RE, atomic_write_text, korean_mode, parse_frontmatter, read_text_cached, real_source_files, strip_code, wiki_page_paths  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))
-from _hub_common import HUB_SPECS, iter_hub_files  # noqa: E402
+from _hub_common import hub_stems  # noqa: E402
 
 HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$")
 
@@ -243,7 +243,7 @@ def _reconnect_orphan_hubs(orphan_stems: list[str], fix: bool) -> dict[str, list
 def run(fix: bool = False) -> int:
     all_pages = wiki_page_paths()
 
-    hubs: set[str] = {p.stem for d, _ in HUB_SPECS for p in iter_hub_files(d)}
+    hubs: set[str] = hub_stems()
 
     # Source page stems — the missing-entity-candidate tally counts *distinct
     # sources* per naming.md ("≥3 distinct source"), so only links originating
@@ -285,7 +285,10 @@ def run(fix: bool = False) -> int:
                     broken_anchors[rel].append(f"{page_part}#{anchor_part}")
 
     bl_path = WIKI / "_backlinks.json"
-    backlinks = json.loads(bl_path.read_text(encoding="utf-8")) if bl_path.exists() else {}
+    try:
+        backlinks = json.loads(bl_path.read_text(encoding="utf-8")) if bl_path.exists() else {}
+    except (OSError, ValueError):
+        backlinks = {}
 
     orphans: list[str] = []
     source_only_orphans: list[tuple[str, int]] = []  # hub-in only, source-in zero

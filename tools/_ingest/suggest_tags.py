@@ -109,6 +109,16 @@ def main() -> int:
             print("  No connection hubs — derive tags directly from the body topic.")
         return 1 if r["empty"] else 0
 
+    if args.all:
+        print(f"{len(rows)} source(s) — {len(empty_rows)} need tags (candidates based on connection hubs):")
+        for r in rows:
+            if r["empty"]:
+                cand = ", ".join(r["candidates"]) if r["candidates"] else "(no connection hubs — derive from the body)"
+                print(f"  {r['slug']}\n    candidates: {cand}")
+            else:
+                print(f"  {r['slug']} (already filled)")
+        return 1 if empty_rows else 0
+
     if not empty_rows:
         print(f"OK — no empty-tag sources ({scanned} scanned).")
         return 0

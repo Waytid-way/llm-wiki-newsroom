@@ -124,7 +124,6 @@ PLACEHOLDER_MARKERS = ("<", ">", "*", "...", "{", "}", "YYYY", "MM-", "-DD", "[a
 
 # LANGUAGE patterns
 KOREAN_RE = re.compile(r"[가-힣]")
-HEADER_WHITELIST: set[str] = set()
 
 # FLAT-PATH guard — prevents reintroduction of pre-refactor `python tools/lint.py <flat-subcmd>`
 # invocations. After the 2026-04-19 group refactor the correct form is
@@ -423,8 +422,6 @@ def _check_language_in_file(path: Path) -> list[tuple[int, str]]:
         if not m:
             continue
         header = m.group(2).strip()
-        if header in HEADER_WHITELIST:
-            continue
         if KOREAN_RE.search(header):
             violations.append((i, line.rstrip()))
     return violations
@@ -446,10 +443,15 @@ def _load_gdl_checks():
     if not _GDL_CHECKS_PATH.exists():
         return None
     import importlib.util
-    spec = importlib.util.spec_from_file_location("gdl_checks", _GDL_CHECKS_PATH)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+    try:
+        spec = importlib.util.spec_from_file_location("gdl_checks", _GDL_CHECKS_PATH)
+        if spec is None or spec.loader is None:
+            return None
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    except (OSError, SyntaxError, ImportError):
+        return None
 
 
 PROJECT_VOICE_PATTERNS = [
@@ -508,7 +510,7 @@ def _check_claude_voice_violations() -> list[str]:
         except OSError:
             continue
         lines = list(_iter_non_fenced_lines(text))
-        if gdl is not None:
+        if gdl is not None and hasattr(gdl, "find_deliberation_narrative"):
             for i, label, matched in gdl.find_deliberation_narrative(lines):
                 violations.append(f"{rel}:{i}: [{label}] '{matched}'")
         for i, line in lines:

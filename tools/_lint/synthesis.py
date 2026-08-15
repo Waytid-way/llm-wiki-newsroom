@@ -35,7 +35,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, WIKILINK_STEM_RE, WIKILINK_ANY_RE, MARKUP_LEAK_RE, atomic_write_text, cli_slug_path, parse_frontmatter, read_text_cached, strip_code, strip_frontmatter  # noqa: E402
+from _lib import WIKI, WIKILINK_STEM_RE, WIKILINK_ANY_RE, MARKUP_LEAK_RE, atomic_write_text, cli_slug_path, fm_sources, parse_frontmatter, read_text_cached, strip_code, strip_frontmatter  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))  # tools/_lint/ — for _manifest_counts (sibling)
 from _advisory_common import L1_MIN_SLUG_LEN, iter_md, mark as _mark, print_rewrite_block  # noqa: E402
 
@@ -44,8 +44,10 @@ from _advisory_common import L1_MIN_SLUG_LEN, iter_md, mark as _mark, print_rewr
 # local regex that drifts from the skill's kebab-only·subdir-stripping semantics.
 _ENC_CHECKS_PATH = Path(__file__).resolve().parents[2] / ".claude" / "skills" / "encyclopedia-writing" / "checks.py"
 _enc_spec = importlib.util.spec_from_file_location("enc_checks_syn", _ENC_CHECKS_PATH)
-enc_skill = importlib.util.module_from_spec(_enc_spec)
-_enc_spec.loader.exec_module(enc_skill)
+enc_skill = None
+if _enc_spec is not None and _enc_spec.loader is not None:
+    enc_skill = importlib.util.module_from_spec(_enc_spec)
+    _enc_spec.loader.exec_module(enc_skill)
 
 SYNTHESES_DIR = WIKI / "syntheses"
 SOURCES_DIR = WIKI / "sources"
@@ -92,19 +94,7 @@ CONNECT_HEADING_RE = re.compile(r"^##\s+Connections\s*$", re.MULTILINE)
 
 def _sources_list(fm: dict) -> list[str]:
     """Frontmatter `sources:` as a clean stem list (handles list or scalar)."""
-    raw = fm.get("sources")
-    if raw is None:
-        return []
-    if isinstance(raw, str):
-        raw = [s.strip() for s in raw.strip("[]").split(",") if s.strip()]
-    out = []
-    for s in raw:
-        if not isinstance(s, str):
-            continue
-        stem = s.strip().strip("'\"").removesuffix(".md")
-        if stem:
-            out.append(stem)
-    return out
+    return [s.strip("'\"").removesuffix(".md") for s in fm_sources(fm)]
 
 
 def _is_news_misfile(slug: str, fm: dict) -> bool:
@@ -171,7 +161,7 @@ def _evaluate(rel: str, slug: str, content: str) -> dict:
                 join_units.append((line.strip()[:70], sorted(hits)))
 
     # enc.slug-alias (L1) — raw ≥10-char kebab slug exposure (owning skill impl).
-    l1_raw = enc_skill.find_unaliased_slugs(body, min_len=L1_MIN_SLUG_LEN)
+    l1_raw = enc_skill.find_unaliased_slugs(body, min_len=L1_MIN_SLUG_LEN) if enc_skill is not None else []
     slug_alias_pass = len(l1_raw) == 0
 
     # W1 (advisory) — wikilink density.

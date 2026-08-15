@@ -263,10 +263,16 @@ def _yaml_safe_string(s: str) -> str:
     return s.replace('\\', '\\\\').replace('"', '\\"')
 
 
+# Site-chrome containers whose links are navigation/social boilerplate, not
+# editorial outbound references. `extract_links` strips these so the harvested
+# links carry the "this source cites that" signal the crawl enrichment follows.
+CHROME_TAGS = ["script", "style", "nav", "footer", "header", "aside", "iframe"]
+
+
 def extract_content(soup: BeautifulSoup) -> str:
     """Extract main article text from common container selectors."""
     # Remove scripts, styles, nav, footer
-    for tag in soup(["script", "style", "nav", "footer", "header", "aside", "iframe"]):
+    for tag in soup(CHROME_TAGS):
         tag.decompose()
 
     # Try known content selectors
@@ -294,12 +300,6 @@ def extract_title(soup: BeautifulSoup) -> str:
     if t:
         return t.get_text(strip=True)
     return ""
-
-
-# Site-chrome containers whose links are navigation/social boilerplate, not
-# editorial outbound references. `extract_links` strips these so the harvested
-# links carry the "this source cites that" signal the crawl enrichment follows.
-CHROME_TAGS = ["script", "style", "nav", "footer", "header", "aside", "iframe"]
 
 
 def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
@@ -660,7 +660,7 @@ def main():
 
         final_url, title, description, content = fetch_html(url, timeout=15)
         if final_url != url:
-            print(f"(fallback variant used: {final_url})")
+            print(f"(resolved to: {final_url})")
     except UnsafeURLError as e:
         print(f"BLOCKED: {e}")
         sys.exit(2)

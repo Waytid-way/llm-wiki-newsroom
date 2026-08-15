@@ -277,7 +277,7 @@ def scan_one(
         if c["count"] >= tiered_min_count(c["stem"], min_count)
     ]
     try:
-        rel = str(path.resolve().relative_to(Path.cwd().resolve()))
+        rel = str(path.resolve().relative_to(WIKI.parent.resolve()))
     except ValueError:
         rel = str(path)
     return {"file": rel, "unlinked": candidates}

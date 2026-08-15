@@ -457,7 +457,12 @@ def render_report(result: dict) -> str:
 def _read_seeds(args: argparse.Namespace) -> list[str]:
     seeds = list(args.url or [])
     if args.seed_file:
-        for ln in Path(args.seed_file).read_text(encoding="utf-8").splitlines():
+        try:
+            seed_lines = Path(args.seed_file).read_text(encoding="utf-8").splitlines()
+        except OSError as e:
+            print(f"ERROR: cannot read seed file {args.seed_file}: {e}", file=sys.stderr)
+            raise SystemExit(2) from None
+        for ln in seed_lines:
             ln = ln.strip()
             if ln.startswith(("http://", "https://")):
                 seeds.append(ln)
@@ -506,7 +511,8 @@ def main() -> int:
             # How many gaps to look at and how many pages to fetch are separate
             # budgets — tying them means lowering --max-pages also shrinks the
             # set of gaps considered.
-            per_type = {gt: seeds_from_gaps((gt,), limit=args.gap_limit) for gt in gap_types}
+            gaps_json = load_gaps_json(limit=args.gap_limit)
+            per_type = {gt: seeds_from_gaps((gt,), limit=args.gap_limit, gaps_json=gaps_json) for gt in gap_types}
         except RuntimeError as e:
             print(f"ERROR: gap diagnosis unavailable — {e}", file=sys.stderr)
             return 2

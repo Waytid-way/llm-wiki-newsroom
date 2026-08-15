@@ -29,9 +29,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import FRONTMATTER_BLOCK_RE, read_text_cached  # noqa: E402
+from _lib import read_text_cached  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))
-from _hub_common import HTML_COMMENT_RE, HUB_SPECS, iter_hub_files  # noqa: E402
+from _hub_common import HUB_SPECS, body_keep_lines, iter_hub_files  # noqa: E402
 
 # Matches a `## Timeline narrative` or `## Timeline` section — or the Korean
 # `## 타임라인 (서사 (골격))` heading family for WIKI_LANG=ko corpora (the module
@@ -39,7 +39,7 @@ from _hub_common import HTML_COMMENT_RE, HUB_SPECS, iter_hub_files  # noqa: E402
 # only to hubs that have a timeline section; hubs without one are out of scope
 # (many good hubs don't have a timeline section at all).
 TIMELINE_SECTION_RE = re.compile(
-    r"^##\s+(?:Timeline(?:\s+narrative)?|타임라인(?:\s+서사)?(?:\s+골격)?)\s*$(.*?)(?=^##\s|\Z)",
+    r"^##\s+(?:Timeline(?:\s+narrative)?|타임라인(?:\s*\(?\s*서사\s*\)?)?(?:\s*\(?\s*골격\s*\)?)?\)*)\s*$(.*?)(?=^##\s|\Z)",
     re.MULTILINE | re.DOTALL,
 )
 # Timeline item: starts with `- **` or `* **` then `YYYY년 M월 (D일)?` or
@@ -86,15 +86,7 @@ def _date_key(year: str, month: str | None, day: str | None) -> tuple[int, int, 
 
 def _check_timeline(content: str, path: Path, dir_label: str) -> list[str]:
     issues: list[str] = []
-    # Newline-preserving equivalent of _hub_common.body_text: keep the
-    # frontmatter line count as `base` and replace HTML comments by their own
-    # newlines, so reported `:{line_no}:` values map to source-file lines.
-    fm = FRONTMATTER_BLOCK_RE.match(content)
-    base = content[: fm.end()].count("\n") if fm else 0
-    body = HTML_COMMENT_RE.sub(
-        lambda m: "\n" * m.group(0).count("\n"),
-        content[fm.end():] if fm else content,
-    )
+    base, body = body_keep_lines(content)
     section_match = TIMELINE_SECTION_RE.search(body)
     if not section_match:
         return issues

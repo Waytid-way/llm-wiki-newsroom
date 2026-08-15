@@ -45,7 +45,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 import sys
 from collections import Counter
@@ -53,7 +52,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import GRADE_MARKER_RE, WIKI as wiki, atomic_write_if_changed, source_date_from_text  # noqa: E402
+from _lib import GRADE_MARKER_RE, WIKI as wiki, atomic_write_if_changed, real_source_files, source_date_from_text  # noqa: E402
 
 TOOLS = Path(__file__).parent.parent
 RULES_PATH = TOOLS / "_contradiction_rules.json"
@@ -143,15 +142,9 @@ def _collect() -> list[dict]:
     source reflections.
     """
     items: list[dict] = []
-    d = wiki / "sources"
-    if not d.exists():
-        return items
-    for f in sorted(os.listdir(d)):
-        if not f.endswith(".md") or f.startswith("_"):
-            continue
-        fp = d / f
+    for fp in real_source_files(wiki):
         content = fp.read_text(encoding="utf-8", errors="replace")
-        rel = f"sources/{f}"
+        rel = f"sources/{fp.name}"
         # Locate `## Connections` section
         m = re.search(
             r"^## Connections\s*\n(.*?)(?=\n## |\Z)", content, re.DOTALL | re.MULTILINE
@@ -215,13 +208,7 @@ def _build_source_metadata_cache() -> dict[str, dict]:
                         `## Key Claims`, 0.0 if section absent or empty}.
     """
     cache: dict[str, dict] = {}
-    src_dir = wiki / "sources"
-    if not src_dir.exists():
-        return cache
-    for f in sorted(os.listdir(src_dir)):
-        if not f.endswith(".md") or f.startswith("_"):
-            continue
-        path = src_dir / f
+    for path in real_source_files(wiki):
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
@@ -234,7 +221,7 @@ def _build_source_metadata_cache() -> dict[str, dict]:
             if grades:
                 primary = sum(1 for g in grades if g == "fact")
                 primary_ratio = primary / len(grades)
-        stem = f[:-3]  # strip .md
+        stem = path.stem
         cache[stem] = {"date": date_str, "primary_ratio": primary_ratio}
     return cache
 

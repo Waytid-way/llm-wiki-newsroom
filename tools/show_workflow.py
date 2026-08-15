@@ -54,7 +54,7 @@ def resolve_run(arg: str | None, all_projects: bool) -> Path | None:
             return p
         # run id (prefix) match
         for r in find_runs(all_projects=True):
-            if r.name.startswith(arg) or r.name.startswith(f"wf_{arg}".replace("wf_wf_", "wf_")):
+            if r.name.startswith(arg) or r.name.startswith("wf_" + arg.removeprefix("wf_")):
                 return r
         return None
     runs = find_runs(all_projects)

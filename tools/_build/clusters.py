@@ -88,14 +88,6 @@ def _slugify(s: str) -> str:
     s = re.sub(r"-+", "-", s).strip("-")
     return s or "unlabeled"
 
-
-# Local alias kept for backward compatibility within this module —
-# delegates to the project-wide atomic_write_if_changed helper. Centralized
-# implementation gives every build artefact temp+rename atomicity plus the
-# dirty-check that avoids phantom-modified state in `git status`.
-_write_if_changed = atomic_write_if_changed
-
-
 def _collect_hub_tags() -> dict[str, list[str]]:
     hub_tags: dict[str, list[str]] = {}
     for subdir in ("entities", "concepts"):
@@ -731,7 +723,7 @@ def run_catalogs() -> None:
                 lines.append(f"- [{short}]({rel}) — {desc}{tag_suffix}")
             else:
                 lines.append(f"- [{short}]({rel}){tag_suffix}")
-        _write_if_changed(SOURCES_DIR / catalog_name, "\n".join(lines) + "\n")
+        atomic_write_if_changed(SOURCES_DIR / catalog_name, "\n".join(lines) + "\n")
         catalog_summary.append((name, len(files), catalog_name, slug))
         emitted_slugs.add(slug)
 
@@ -757,7 +749,7 @@ def run_catalogs() -> None:
                 all_lines.append(f"- [{short}]({rel}) — {desc}{tag_suffix}")
             else:
                 all_lines.append(f"- [{short}]({rel}){tag_suffix}")
-    _write_if_changed(SOURCES_DIR / "_catalog.md", "\n".join(all_lines) + "\n")
+    atomic_write_if_changed(SOURCES_DIR / "_catalog.md", "\n".join(all_lines) + "\n")
 
     print(f"Source catalogs: {len(catalog_summary)} clusters, {total_sources} total sources")
     for name, count, cname, _slug in sorted(catalog_summary, key=lambda x: -x[1]):

@@ -41,10 +41,10 @@ LOG_PATH = Path(__file__).resolve().parent / "_defect-log.jsonl"
 WATERMARK_PATH = Path(__file__).resolve().parent / "_failure-review.json"
 
 
-def read_log(path: Path = LOG_PATH) -> list[dict]:
+def read_log() -> list[dict]:
     """List of corpus records — skips broken lines. Empty list if none."""
     try:
-        text = path.read_text(encoding="utf-8")
+        text = LOG_PATH.read_text(encoding="utf-8")
     except OSError:
         return []
     out = []

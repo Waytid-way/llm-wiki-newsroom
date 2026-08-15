@@ -30,9 +30,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))  # _discover/ → tools/ root (shared modules)
 from _lib import CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, _build_id_map  # noqa: E402
 
-GRAPH_PATH = GRAPH_JSON
-CLUSTERS_PATH = CLUSTERS_JSON
-
 DEFAULT_TOP = 15
 
 
@@ -43,15 +40,15 @@ def compute(top: int | None = None) -> tuple[list[dict], int, int] | None:
     inputs / dependencies are missing (caller decides how to surface the
     error — for `run()` it's a stderr line + exit code 1; for `lint.py
     graph gaps` it's a fold-into-summary placeholder)."""
-    if not GRAPH_PATH.exists() or not CLUSTERS_PATH.exists():
+    if not GRAPH_JSON.exists() or not CLUSTERS_JSON.exists():
         return None
     try:
         import networkx as nx
     except ImportError:
         return None
 
-    g = json.loads(GRAPH_PATH.read_text(encoding="utf-8"))
-    c = json.loads(CLUSTERS_PATH.read_text(encoding="utf-8"))
+    g = json.loads(GRAPH_JSON.read_text(encoding="utf-8"))
+    c = json.loads(CLUSTERS_JSON.read_text(encoding="utf-8"))
     id_map = _build_id_map(g["nodes"])
     hub_assign = c.get("hub_assignments", {})
     nodes_by_id = {n["id"]: n for n in g["nodes"]}
@@ -115,7 +112,7 @@ def compute(top: int | None = None) -> tuple[list[dict], int, int] | None:
 
 
 def run(json_out: bool = False, top: int | None = None) -> int:
-    if not GRAPH_PATH.exists() or not CLUSTERS_PATH.exists():
+    if not GRAPH_JSON.exists() or not CLUSTERS_JSON.exists():
         print("graph/_graph.json or _clusters.json missing. Run `python tools/build.py` first.",
               file=sys.stderr)
         return 1

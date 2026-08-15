@@ -34,6 +34,27 @@ def iter_hub_files(directory: Path) -> list[Path]:
     return sorted(p for p in directory.glob("*.md") if not p.name.startswith("_"))
 
 
+def hub_stems() -> set[str]:
+    """All hub page stems — single SoT shared by structure and link_candidates
+    (a second inline copy drifts when a hub directory is added)."""
+    return {p.stem for d, _ in HUB_SPECS for p in iter_hub_files(d)}
+
+
+def body_keep_lines(content: str) -> tuple[int, str]:
+    """(base, body) — newline-preserving frontmatter/comment strip: keep the
+    frontmatter line count as `base` and replace HTML comments by their own
+    newlines, so reported `:line:` values map to source-file lines.
+
+    Shared by hub_timeline and hub_voice (were two verbatim copies)."""
+    fm = FRONTMATTER_BLOCK_RE.match(content)
+    base = content[: fm.end()].count("\n") if fm else 0
+    body = HTML_COMMENT_RE.sub(
+        lambda m: "\n" * m.group(0).count("\n"),
+        content[fm.end():] if fm else content,
+    )
+    return base, body
+
+
 def body_text(content: str) -> str:
     """Body text with frontmatter + HTML comments removed (length decisions use body_len)."""
     fm = FRONTMATTER_BLOCK_RE.match(content)

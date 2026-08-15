@@ -32,7 +32,8 @@ def _source_clusters() -> dict:
     """sources/<slug>.md → primary cluster (graph/_clusters.json)."""
     try:
         sa = json.loads(CLUSTERS_JSON.read_text(encoding="utf-8")).get("source_assignments", {})
-    except (OSError, ValueError):
+    except (OSError, ValueError) as e:
+        print(f"WARNING: cannot read graph/_clusters.json ({e}) — cluster info unavailable", file=sys.stderr)
         return {}
     return sa
 

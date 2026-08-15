@@ -35,8 +35,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, REPO_ROOT, WIKI, korean_mode, parse_frontmatter  # noqa: E402
 from _news.normalize import hub_korean_label, normalize_tags  # noqa: E402
 
-GRAPH_PATH = GRAPH_JSON
-CLUSTERS_PATH = CLUSTERS_JSON
 HUB_DIRS = [WIKI / "entities", WIKI / "concepts"]
 
 
@@ -249,8 +247,8 @@ def load_gaps_json(*, limit: int = 5, gap_type: str | None = None) -> dict[str, 
     if res.returncode not in (0, 1):  # 1 just means "gaps exist", not failure
         raise RuntimeError(res.stderr or "lint graph gaps failed")
     body = res.stdout
-    if "{" in body:  # strip the lint header bars so json.loads can parse
-        body = body[body.index("{"):]
+    if "{" not in body:  # exit 1 with empty stdout = missing graph, not gaps
+        raise RuntimeError((res.stderr or "lint graph gaps failed").strip()) from None
     try:
         return json.loads(body)
     except json.JSONDecodeError as e:
@@ -266,10 +264,10 @@ def build_all(gaps_json: dict[str, Any], *, limit_per_type: int | None = None) -
     candidate count — pass the operator's batch budget to keep the inbox
     queue bounded.
     """
-    if not GRAPH_PATH.exists() or not CLUSTERS_PATH.exists():
+    if not GRAPH_JSON.exists() or not CLUSTERS_JSON.exists():
         return []
-    graph = json.loads(GRAPH_PATH.read_text(encoding="utf-8"))
-    clusters = json.loads(CLUSTERS_PATH.read_text(encoding="utf-8"))
+    graph = json.loads(GRAPH_JSON.read_text(encoding="utf-8"))
+    clusters = json.loads(CLUSTERS_JSON.read_text(encoding="utf-8"))
     cluster_info = {c["slug"]: c for c in clusters.get("clusters", [])}
     hub_fm = _load_hub_fm()
     top_hubs = _cluster_top_hubs(clusters, graph, hub_fm)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""minimality-advisory.sh helper — diff-scoped bullet depth / multi-item cramming detection.
+"""Library — diff-scoped bullet depth / multi-item cramming detection (imported by dispatch.py).
 
 When editing `.claude/`·CLAUDE.md, surface as an advisory any list bullet entering
 in this change (new_string/content) that is "length ≥ LEN_T relative to sibling
@@ -13,8 +13,6 @@ Failure is non-blocking — on exception, silently emit empty output + exit 0.
 """
 import re
 import statistics
-import sys
-import json
 
 LEN_T = 3.0
 MIN_GROUP = 4
@@ -89,8 +87,7 @@ def expected_text(tool_input):
 
 def analyze(data) -> str:
     """hook JSON dict → advisory text (empty string if no violation). The entry
-    point dispatch.py calls without re-parsing stdin — main() is the wrapper for
-    standalone stdin execution."""
+    point dispatch.py calls without re-parsing stdin."""
     full, changed = expected_text(data.get("tool_input", {}))
     if not full or not changed:
         return ""
@@ -121,17 +118,3 @@ def analyze(data) -> str:
         lines.append("  %.1fx (enum%d·sent%d) L%d: %s…" % (ratio, enum, sent, lineno, body[:60]))
     return "\n".join(lines)
 
-
-def main():
-    try:
-        data = json.load(sys.stdin)
-    except Exception:
-        return 0
-    out = analyze(data)
-    if out:
-        sys.stdout.write(out)
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

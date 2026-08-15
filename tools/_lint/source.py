@@ -18,9 +18,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import FRONTMATTER_BLOCK_RE, REPO_ROOT, WIKI, WIKILINK_ANY_RE, parse_frontmatter, read_text_cached, real_source_files, strip_code, strip_frontmatter  # noqa: E402
+from _lib import FRONTMATTER_BLOCK_RE, H2_RE, REPO_ROOT, WIKI, WIKILINK_ANY_RE, parse_frontmatter, read_text_cached, real_source_files, strip_code, strip_frontmatter  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))
-from _advisory_common import L1_MIN_SLUG_LEN, L1_RAW_SLUG_RE, mark  # noqa: E402
+from _advisory_common import L1_RAW_SLUG_RE, mark  # noqa: E402
 
 import importlib.util as _ilu  # noqa: E402
 import json as _json  # noqa: E402
@@ -92,7 +92,7 @@ def _build_page_index() -> dict[str, tuple[str, str]]:
             rel = str(fp.relative_to(WIKI)).replace("\\", "/")
             try:
                 content = read_text_cached(fp)
-            except Exception:
+            except OSError:
                 continue
             fm = parse_frontmatter(content)
             page_type = fm.get("type", "unknown")
@@ -149,9 +149,6 @@ W1_MIN_LINKS = 5
 # The cit.* measurement regexes (grade·claimant·citation prefix·quote·composite·anchor)
 # were moved verbatim to scholarly-citation/checks.py. This file measures only S1·W1·L1·desk.
 # L1 (raw kebab-case slug exposure) constants live in _advisory_common (shared with synthesis·trail).
-
-# Section header detector.
-H2_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 
 # Wikilink (any) — captures inner target (without optional pipe alias).
 

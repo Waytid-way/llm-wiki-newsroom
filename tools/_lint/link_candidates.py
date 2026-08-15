@@ -25,7 +25,7 @@ from _lib import (  # noqa: E402
     wiki_page_paths,
 )
 sys.path.insert(0, str(Path(__file__).parent))
-from _hub_common import HUB_SPECS, iter_hub_files  # noqa: E402
+from _hub_common import hub_stems  # noqa: E402
 
 BACKLINKS_PATH = WIKI / "_backlinks.json"
 
@@ -43,18 +43,11 @@ def _index_pages() -> dict[str, Path]:
     return wiki_page_paths()
 
 
-def _hub_set() -> set[str]:
-    return {p.stem for d, _ in HUB_SPECS for p in iter_hub_files(d)}
-
-
 def _find(
-    min_bl: int = DEFAULT_MIN_BL,
-    max_bl: int = DEFAULT_MAX_BL,
-    top_bl: int = DEFAULT_TOP_BL_PER_SEED,
     min_seeds: int = DEFAULT_MIN_SEEDS,
 ) -> list[dict]:
     pages = _index_pages()
-    hubs = _hub_set()
+    hubs = hub_stems()
     backlinks: dict = (
         json.loads(BACKLINKS_PATH.read_text(encoding="utf-8"))
         if BACKLINKS_PATH.exists()
@@ -80,9 +73,9 @@ def _find(
         refs = backlinks.get(hub)
         if not isinstance(refs, list):
             continue
-        if not (min_bl <= len(refs) <= max_bl):
+        if not (DEFAULT_MIN_BL <= len(refs) <= DEFAULT_MAX_BL):
             continue
-        for ref in refs[:top_bl]:
+        for ref in refs[:DEFAULT_TOP_BL_PER_SEED]:
             ref_path = ref.get("from") if isinstance(ref, dict) else None
             if not ref_path:
                 continue

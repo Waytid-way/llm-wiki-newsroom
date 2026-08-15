@@ -220,7 +220,7 @@ def _check_body(content: str, path: Path, expected_type: str, dir_label: str) ->
     has_canonical = bool(SECTION_YEONGYEOL_RE.search(body))
     has_legacy_bare = korean_mode() and bool(SECTION_LEGACY_YEONGYEOL_RE.search(body))
     has_legacy_prefix = korean_mode() and bool(SECTION_LEGACY_YEONGYEOL_PREFIX_RE.search(body))
-    has_legacy_variant = has_legacy_prefix and not has_legacy_bare
+    has_legacy_variant = has_legacy_prefix and has_canonical and not has_legacy_bare
     if not has_canonical and not has_legacy_bare:
         issues.append(
             f"  {dir_label}/{path.name}: missing required `## Connections` section "

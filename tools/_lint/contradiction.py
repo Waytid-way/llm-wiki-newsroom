@@ -41,7 +41,7 @@ from datetime import date as _date, datetime as _datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import AUTO_BLOCK_RE, CLUSTERS_JSON, REPO_ROOT, WIKI, WIKILINK_TARGET_RE, atomic_write_text, confirm_changes, parse_frontmatter, print_delete_cleanup_advisory, read_source_date, real_source_files, safe_slug_path, section_body, slug_only, strip_frontmatter  # noqa: E402
+from _lib import AUTO_BLOCK_RE, CLUSTERS_JSON, REPO_ROOT, WIKI, WIKILINK_TARGET_RE, atomic_write_text, confirm_changes, fm_sources as _fm_sources, parse_frontmatter, print_delete_cleanup_advisory, read_source_date, read_text_cached, real_source_files, safe_slug_path, section_body, slug_only, strip_frontmatter  # noqa: E402
 from _advisory_common import mark  # noqa: E402
 from _manifest_counts import _load_manifest, counts as _roster_counts, threshold_label  # noqa: E402
 
@@ -422,7 +422,7 @@ def _sources_for_claim_ids(claim_ids: list, by_id: dict[str, dict]) -> set[str]:
         rec = by_id.get(cid)
         if not rec:
             continue
-        stem = rec.get("source", "").removeprefix("sources/").removesuffix(".md")
+        stem = (rec.get("source") or "").removeprefix("sources/").removesuffix(".md")
         if stem:
             stems.add(stem)
     return stems
@@ -479,7 +479,7 @@ def _rubric_metrics(
     can render the advisory line and downstream callers (e.g. future
     CI thresholds) can consume individual values.
     """
-    content = path.read_text(encoding="utf-8")
+    content = read_text_cached(path)
     body = strip_frontmatter(content)
 
     # S1 — 4 H2 + TODO 0. Line-start prefix match (same logic as the
@@ -487,7 +487,7 @@ def _rubric_metrics(
     # variants on the heading line.
     sections_present = sum(
         1 for s in CONTRADICTION_REQUIRED_SECTIONS
-        if re.search(rf"^{re.escape(s)}", body, re.MULTILINE)
+        if _section_present(body, s)
     )
     todo_count = len(re.findall(r"_TODO:", body))
 
@@ -526,7 +526,7 @@ def _rubric_metrics(
     # moved (verbatim) to the scholarly-citation skill. Shared parsing
     # (claim_sources·evidence_slugs) and wiki-wide (sources_dir) are injected by the orchestrator.
     fm = parse_frontmatter(content)
-    fm_sources = fm.get("sources") or []
+    fm_sources = _fm_sources(fm)
     _cit_contra = getattr(cit_skill, _CIT_CONTRA_FN)(
         body,
         fm_sources=fm_sources,
@@ -670,10 +670,10 @@ def _claims_drift_line(
     """Compute per-theme drift vs git HEAD. Silent when theme is new,
     baseline missing, or all metrics sit in the 'stable' tier.
     """
-    new_ids = set(current_themes_doc.get("themes", {}).get(theme_slug, {}).get("claim_ids", []))
+    new_ids = set(current_themes_doc.get("themes", {}).get(theme_slug, {}).get("claim_ids") or [])
     if not isinstance(head_themes_doc, dict):
         return None
-    old_ids = set(head_themes_doc.get("themes", {}).get(theme_slug, {}).get("claim_ids", []))
+    old_ids = set(head_themes_doc.get("themes", {}).get(theme_slug, {}).get("claim_ids") or [])
     if not old_ids:
         return None  # new theme — no baseline
 
@@ -737,7 +737,7 @@ def _claims_staleness_line(
         c = claims_by_id.get(cid)
         if not c:
             continue
-        d = read_source_date(c.get("source", ""))
+        d = read_source_date(c.get("source") or "")
         if d > newest:
             newest = d
     if not newest:
@@ -971,7 +971,7 @@ def _check_contradictions_md(
     # treated as a single header for completeness purposes.
     sections_present = sum(
         1 for s in AGGREGATE_REQUIRED_SECTIONS
-        if re.search(rf"^{re.escape(s)}", content, re.MULTILINE)
+        if _section_present(content, s)
     )
     s1_ok = sections_present == len(AGGREGATE_REQUIRED_SECTIONS)
 
@@ -1067,7 +1067,7 @@ def _check_contradictions_md(
     if not s1_ok:
         missing_sections = [
             s for s in AGGREGATE_REQUIRED_SECTIONS
-            if not re.search(rf"^{re.escape(s)}", content, re.MULTILINE)
+            if not _section_present(content, s)
         ]
         issues.append(
             f"  wiki/contradiction.md: S1 FAIL — missing required section(s): "
@@ -1250,7 +1250,7 @@ def _check_one_md(path: Path, fix: bool) -> tuple[list[str], int]:
     issues: list[str] = []
     actions = 0
 
-    content = path.read_text(encoding="utf-8")
+    content = read_text_cached(path)
     fm = parse_frontmatter(content)
     issues.extend(check_frontmatter(fm, CONTRADICTION_REQUIRED_FRONTMATTER, path))
     if fm.get("type") and fm["type"] != "contradiction":
@@ -1399,11 +1399,10 @@ def _check_frontmatter_drift(themes_doc: dict, claims: list[dict], only_theme: s
         md_path = CONTRADICTIONS_DIR / f"{slug}.md"
         if not md_path.exists():
             continue
-        fm = parse_frontmatter(md_path.read_text(encoding="utf-8"))
+        fm = parse_frontmatter(read_text_cached(md_path))
         md_sources = {
             str(s).removeprefix("sources/").removesuffix(".md")
-            for s in (fm.get("sources") or [])
-            if isinstance(s, str)
+            for s in _fm_sources(fm)
         }
 
         json_sources = _sources_for_claim_ids(theme.get("claim_ids", []) or [], by_id)

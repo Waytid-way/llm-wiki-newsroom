@@ -49,7 +49,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import parse_frontmatter, read_text_cached, WIKILINK_RE, WIKI, CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, fm_sources  # noqa: E402
+from _lib import parse_frontmatter, read_text_cached, WIKILINK_RE, WIKI, CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, fm_sources, _build_id_map  # noqa: E402
 
 GRAPH_PATH = GRAPH_JSON
 CLUSTERS_PATH = CLUSTERS_JSON
@@ -173,10 +173,11 @@ def _build_hub_subgraph(graph: dict, clusters: dict) -> tuple[dict[str, set[str]
     construction in `_discover/surprising.compute()` so degree thresholds
     use the same denominator the operator already sees in `--surprising`."""
     hub_ids = {n["id"] for n in graph["nodes"] if n["id"].startswith(HUB_PREFIXES)}
+    id_map = _build_id_map(graph["nodes"])
     nbrs: dict[str, set[str]] = defaultdict(set)
     for e in graph["edges"]:
-        src = e.get("from")
-        dst = e.get("to")
+        src = id_map.get(e.get("from"))
+        dst = id_map.get(e.get("to"))
         if not src or not dst or src == dst:
             continue
         if src not in hub_ids or dst not in hub_ids:
@@ -289,7 +290,7 @@ def detect_stale_hub(hub_fm: dict[str, dict],
             continue
         deg = len(nbrs.get(hub_id, set()))
         impact = _impact_score(deg, cluster_size.get(cluster, 0), max_cluster_size)
-        severity = round(gap / 14.0, 2)
+        severity = round(gap / STALE_HUB_AGE_GAP_DAYS, 2)
         out.append({
             "id": hub_id,
             "title": fm["title"],
@@ -385,7 +386,7 @@ def detect_contradiction(themes_data: dict) -> dict:
         # Latest mapped source last_updated — best-effort: scan source files
         # listed in theme MD `sources:` frontmatter (cheap, mostly cached).
         latest_src = None
-        for src_path in (fm.get("sources") or []):
+        for src_path in fm_sources(fm):
             if src_path in _src_lu_cache:
                 d = _src_lu_cache[src_path]
             else:
@@ -493,7 +494,7 @@ def detect_timeline_coverage(hub_fm: dict[str, dict]) -> list[dict]:
         stem = Path(node_id).stem
         if stem in existing:
             continue
-        nsrc = len(fm.get("sources") or [])
+        nsrc = len(fm_sources(fm))
         if nsrc < TIMELINE_SOURCES_FLOOR:
             continue
         events = _timeline_section_events(node_id)
@@ -534,8 +535,12 @@ def run(*, json_out: bool = False,
         print("graph/_graph.json or _clusters.json missing. "
               "Run `python tools/build.py` first.", file=sys.stderr)
         return 1
-    graph = json.loads(GRAPH_PATH.read_text(encoding="utf-8"))
-    clusters = json.loads(CLUSTERS_PATH.read_text(encoding="utf-8"))
+    try:
+        graph = json.loads(GRAPH_PATH.read_text(encoding="utf-8"))
+        clusters = json.loads(CLUSTERS_PATH.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"ERROR: cannot read graph artifacts (_graph.json/_clusters.json): {e}", file=sys.stderr)
+        return 1
     cluster_size = {c["slug"]: c["size"] for c in clusters.get("clusters", [])}
     max_cluster_size = max(cluster_size.values()) if cluster_size else 1
 

@@ -257,12 +257,10 @@ def deeplink_key(stem: str) -> str:
 #   WIKILINK_TARGET_RE captures the full target (including #anchor) — normalization is the comparison site's job
 #   WIKILINK_STEM_RE   consumes alias/anchor and captures only the bare stem
 #   WIKILINK_ANY_RE    link existence itself (no capture — for density counting)
-#   WIKILINK_INNER_RE  captures the raw inner text (`target|display#anchor` as one group) — for wholesale link rewriting
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)(?:\|[^\]]*)?\]\]")
 WIKILINK_TARGET_RE = re.compile(r"\[\[([^\]|]+)(?:\|[^\]]*)?\]\]")
 WIKILINK_STEM_RE = re.compile(r"\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]")
 WIKILINK_ANY_RE = re.compile(r"\[\[[^\]]+\]\]")
-WIKILINK_INNER_RE = re.compile(r"\[\[([^\]]+)\]\]")
 
 
 def slug_only(target: str) -> str:
@@ -335,7 +333,7 @@ def section_body(content: str, heading: str, *, prefix: bool = False) -> str:
     return content[start:start + nxt.start()] if nxt else content[start:]
 
 
-def real_source_files() -> list[Path]:
+def real_source_files(base: Path | None = None) -> list[Path]:
     """All 'real' source pages (`wiki/sources/*.md`, excluding `_`-prefixed auto-generated ones).
 
     Build artifacts like `_catalog*.md` and `_source_map.json` live alongside
@@ -344,7 +342,7 @@ def real_source_files() -> list[Path]:
     incident). Claimant/term frequency decisions (entity stub thresholds, etc.)
     use this helper as the single SoT — no raw grep. CLI: `tools/count_mentions.py`.
     """
-    d = WIKI / "sources"
+    d = (base if base is not None else WIKI) / "sources"
     if not d.is_dir():
         return []
     return sorted(fp for fp in d.glob("*.md") if not fp.name.startswith("_"))

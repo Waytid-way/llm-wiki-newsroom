@@ -37,7 +37,7 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -203,6 +203,8 @@ def _scan(transcript_dir: Path, samples_per_pattern: int, since: str | None):
                         d = json.loads(line)
                     except json.JSONDecodeError:
                         continue
+                    if not isinstance(d, dict):
+                        continue
                     text = extract_user_text(d)
                     if text is None:
                         continue
@@ -284,6 +286,8 @@ def main():
     args = p.parse_args()
     if args.checkpoint is not None:
         when = args.checkpoint or date.today().isoformat()
+        if "/" in when:  # tolerate YYYY/MM/DD input; watermark must stay ISO for lexical window compare
+            when = datetime.strptime(when, "%Y/%m/%d").date().isoformat()
         prev_watermark = read_watermark()
         # the CORRECTION fingerprint of the previous review window (after prev watermark) — for computing the recurrence rate
         scan = _scan(args.dir, 0, prev_watermark)

@@ -101,6 +101,8 @@ def validate(rec: dict) -> str | None:
         return f"{kind} missing required keys: {missing}"
     if not SLUG_RE.match(str(rec["cluster"])):
         return f"cluster must be a kebab-case slug (got {rec['cluster']!r})"
+    if kind == "defect" and "@" in str(rec["cluster"]):
+        return f"defect cluster must not carry an @stage suffix (got {rec['cluster']!r}) — the join key is the bare mechanism slug"
     if kind == "transition" and rec["decision"] not in DECISIONS:
         return f"decision must be one of {list(DECISIONS)} (got {rec['decision']!r})"
     if kind == "defect":

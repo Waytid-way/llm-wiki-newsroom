@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import CLUSTERS_JSON as CLUSTERS_PATH  # noqa: E402
+from _lib import CLUSTERS_JSON as CLUSTERS_PATH, GRAPH_JSON  # noqa: E402
 
 # Relative quality gap threshold. RBConfiguration quality is unnormalised
 # (scales with edge count: ~3700 for the wiki's ~16K edges), so a fixed
@@ -66,8 +66,8 @@ def run(json_out: bool = False, threshold: float | None = None) -> int:
         print("ERROR: leidenalg/igraph not installed. Run: python -m pip install 'igraph' 'leidenalg'", file=sys.stderr)
         return 2
 
-    if not CLUSTERS_PATH.exists():
-        print(f"ERROR: {CLUSTERS_PATH} not found. Run `python tools/build.py clusters` first.", file=sys.stderr)
+    if not CLUSTERS_PATH.exists() or not GRAPH_JSON.exists():
+        print("ERROR: graph/_graph.json or _clusters.json not found. Run `python tools/build.py graph` first.", file=sys.stderr)
         return 2
 
     from _build.clusters import RESOLUTION, SEED, build_hub_graph, to_igraph  # noqa: E402  (tools/ on sys.path at module top)
