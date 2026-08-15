@@ -391,6 +391,14 @@ def strip_frontmatter(text: str) -> str:
 
 def strip_code(text: str) -> str:
     """Drop fenced code blocks and inline code spans."""
+    return "\n".join(
+        INLINE_CODE_RE.sub("", line) for line in strip_fences(text).splitlines()
+    )
+
+
+def strip_fences(text: str) -> str:
+    """Remove fenced code blocks (``` … ```), keeping everything else intact
+    including inline code spans — which can carry meaningful heading text."""
     in_fence = False
     out: list[str] = []
     for line in text.splitlines():
@@ -398,7 +406,7 @@ def strip_code(text: str) -> str:
             in_fence = not in_fence
             continue
         if not in_fence:
-            out.append(INLINE_CODE_RE.sub("", line))
+            out.append(line)
     return "\n".join(out)
 
 

@@ -115,7 +115,7 @@ def _extract_raw_url(raw_path: str) -> str | None:
     except OSError:
         return None
 
-    fm = parse_frontmatter(text)
+    fm = {k.lower(): v for k, v in parse_frontmatter(text).items()}
     for field in ("source", "url"):
         url = fm.get(field)
         if isinstance(url, str) and url.startswith(("http://", "https://")):

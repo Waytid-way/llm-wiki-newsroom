@@ -106,7 +106,10 @@ def _load_labels() -> list[dict]:
         data = json.loads(LABELS_PATH.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return []
-    return data.get("labels", [])
+    if not isinstance(data, dict):
+        return []
+    labels = data.get("labels")
+    return labels if isinstance(labels, list) else []
 
 
 def _load_prev_membership() -> dict[str, int] | None:

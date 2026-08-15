@@ -17,7 +17,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, MARKUP_LEAK_RE, WIKILINK_TARGET_RE as LINK_RE, atomic_write_text, korean_mode, parse_frontmatter, read_text_cached, real_source_files, strip_code, wiki_page_paths  # noqa: E402
+from _lib import WIKI, MARKUP_LEAK_RE, WIKILINK_TARGET_RE as LINK_RE, atomic_write_text, korean_mode, parse_frontmatter, read_text_cached, real_source_files, strip_code, strip_fences, wiki_page_paths  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))
 from _hub_common import hub_stems  # noqa: E402
 
@@ -56,7 +56,7 @@ ENGLISH_STANDARD = {
 def _extract_headings(text: str) -> set[str]:
     """Return the set of heading texts (H1-H6) in the page, ignoring code blocks."""
     headings: set[str] = set()
-    for line in strip_code(text).splitlines():
+    for line in strip_fences(text).splitlines():
         m = HEADING_RE.match(line)
         if m:
             headings.add(m.group(1).strip())
