@@ -14,7 +14,7 @@
 
 ## AI Agents & Workflows (1)
 
-- [Graph Engineering: ออกแบบ AI Agent ให้เป็นกรา…](graph-engineering-whrrari.md) — บทความของ rari (@0xwhrrari) นำเสนอ "graph engineering" — การออกแบบ AI agent ให้เป็นแผนผังการทำงาน (execution map)…
+- [Graph Engineering: ออกแบบ AI Agent ให้เป็นกรา…](graph-engineering-whrrari.md) — Thai summary of @0xwhrrari's X article on graph engineering — designing AI agents as explicit execution graphs (nodes/edges/state/routers/gates) instead of linear chains; 4 core shapes (chain/diamond/router/controlled cycle), node contracts, verifiers at edges, durable state, per-node failure policies, cost topology; covers OpenAI AgentKit and Claude Managed Agents announcements.
 
 ## Open Weights (1)
 
