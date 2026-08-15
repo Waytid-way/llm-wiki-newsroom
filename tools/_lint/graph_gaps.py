@@ -50,13 +50,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import parse_frontmatter, read_text_cached, WIKILINK_RE, WIKI, CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, fm_sources, _build_id_map  # noqa: E402
+from _lint._hub_common import load_hub_frontmatter  # noqa: E402
 
 GRAPH_PATH = GRAPH_JSON
 CLUSTERS_PATH = CLUSTERS_JSON
 THEMES_PATH = WIKI / "contradictions/_contradictions_themes.json"
 CLAIMS_PATH = WIKI / "contradictions/_contradictions.json"
 THEMES_DIR = WIKI / "contradictions"
-HUB_DIRS = [WIKI / "entities", WIKI / "concepts"]
 SYNTHESES_DIR = WIKI / "syntheses"
 TRAILS_DIR = WIKI / "trails"
 TIMELINES_DIR = WIKI / "timelines"
@@ -147,22 +147,18 @@ def _parse_iso_date(s) -> date | None:
 
 
 def _load_hub_frontmatter() -> dict[str, dict]:
-    """Return {hub_id: {sources, last_updated, type}} for every hub MD."""
+    """Return {hub_id: {sources, last_updated, title}} for every hub MD.
+
+    Thin reshape over the shared `_hub_common.load_hub_frontmatter` (C97) —
+    the walk/parse/cache lives there, single SoT with `gap_queries`.
+    """
     out: dict[str, dict] = {}
-    for d in HUB_DIRS:
-        if not d.exists():
-            continue
-        for p in d.glob("*.md"):
-            try:
-                fm = parse_frontmatter(read_text_cached(p))
-            except Exception:
-                continue
-            hub_id = f"{d.name}/{p.name}"
-            out[hub_id] = {
-                "sources": fm_sources(fm),
-                "last_updated": _parse_iso_date(fm.get("last_updated")),
-                "title": fm.get("title") or p.stem,
-            }
+    for hub_id, fm in load_hub_frontmatter().items():
+        out[hub_id] = {
+            "sources": fm_sources(fm),
+            "last_updated": _parse_iso_date(fm.get("last_updated")),
+            "title": fm.get("title") or hub_id.split("/")[-1].removesuffix(".md"),
+        }
     return out
 
 
@@ -564,7 +560,13 @@ def run(*, json_out: bool = False,
 
     track_b: dict = {}
     if _want("bridge"):
-        track_b["bridge"] = detect_bridge_nodes(top=top or 10)
+        # Compute the bridge ranking ONCE, at the widest slice any consumer
+        # needs (the `--top` display cap and the fixed trail slice). `--top`
+        # only sizes the stdout table — it must not force a second full
+        # betweenness recompute (C54).
+        track_b["bridge"] = detect_bridge_nodes(
+            top=max(top or 10, TRAIL_BRIDGE_TOP)
+        )
 
     themes_data: dict = {}
     if THEMES_PATH.exists():
@@ -597,9 +599,12 @@ def run(*, json_out: bool = False,
         # Detection must not move with the display cap: `--top` sizes what the
         # operator sees, and trail is the only bucket that reads the bridge
         # ranking as input, so without a fixed slice `--top 3` would shrink the
-        # backlog — and the exit code with it — on an unchanged wiki.
+        # backlog — and the exit code with it — on an unchanged wiki. The bridge
+        # ranking is computed once above (at the widest needed slice) whenever
+        # bridge is wanted; only a `--gap-type` filter that excludes bridge
+        # forces a fresh computation here — a real topology query, not a cap.
         bridge_rows = track_b.get("bridge")
-        if bridge_rows is None or len(bridge_rows) != TRAIL_BRIDGE_TOP:
+        if bridge_rows is None:
             bridge_rows = detect_bridge_nodes(top=TRAIL_BRIDGE_TOP)
         track_d["trail"] = detect_trail_coverage(bridge_rows[:TRAIL_BRIDGE_TOP])
     if _want("timeline"):

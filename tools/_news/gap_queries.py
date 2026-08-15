@@ -32,10 +32,9 @@ from typing import Any
 YEAR = str(datetime.now().year)  # recency token for generated search queries
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, REPO_ROOT, WIKI, korean_mode, parse_frontmatter  # noqa: E402
+from _lib import CLUSTERS_JSON, GRAPH_JSON, HUB_PREFIXES, REPO_ROOT, korean_mode  # noqa: E402
+from _lint._hub_common import load_hub_frontmatter as _load_hub_fm  # noqa: E402
 from _news.normalize import hub_korean_label, normalize_tags  # noqa: E402
-
-HUB_DIRS = [WIKI / "entities", WIKI / "concepts"]
 
 
 def _qt() -> dict[str, str]:
@@ -61,21 +60,6 @@ def _qt() -> dict[str, str]:
 QUERIES_PER_SPARSE_CLUSTER = 2
 QUERIES_PER_SINGLE_SOURCE = 3
 QUERIES_PER_STALE_HUB = 2
-
-
-def _load_hub_fm() -> dict[str, dict]:
-    """Load frontmatter for every entity/concept hub, keyed by `'entities/X.md'`."""
-    out: dict[str, dict] = {}
-    for d in HUB_DIRS:
-        if not d.exists():
-            continue
-        for p in d.glob("*.md"):
-            try:
-                fm = parse_frontmatter(p.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            out[f"{d.name}/{p.name}"] = fm
-    return out
 
 
 def _hub_label(hub_id: str, hub_fm: dict[str, dict]) -> str:

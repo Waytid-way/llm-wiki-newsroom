@@ -11,10 +11,11 @@ from __future__ import annotations
 import json
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import CLUSTERS_JSON, FRONTMATTER_BLOCK_RE, GRAPH_JSON, WIKI, fm_sources, parse_frontmatter  # noqa: E402
+from _lib import CLUSTERS_JSON, FRONTMATTER_BLOCK_RE, GRAPH_JSON, WIKI, fm_sources, parse_frontmatter, read_text_cached  # noqa: E402
 
 ENTITIES_DIR = WIKI / "entities"
 CONCEPTS_DIR = WIKI / "concepts"
@@ -38,6 +39,32 @@ def hub_stems() -> set[str]:
     """All hub page stems — single SoT shared by structure and link_candidates
     (a second inline copy drifts when a hub directory is added)."""
     return {p.stem for d, _ in HUB_SPECS for p in iter_hub_files(d)}
+
+
+@lru_cache(maxsize=1)
+def load_hub_frontmatter() -> dict[str, dict]:
+    """Frontmatter for every entity/concept hub, keyed `'entities/X.md'`.
+
+    Single SoT for the hub-frontmatter walk, shared by the gap lint
+    (`graph_gaps._load_hub_frontmatter`) and the news gap-query builder
+    (`gap_queries._load_hub_fm`) — both previously carried their own copy
+    (C97). Returns the raw parsed frontmatter dict per hub; callers reshape
+    (e.g. graph_gaps keeps only sources/last_updated/title). Hub dirs are
+    re-resolved from the module `WIKI` at call time so tests can point the
+    loader at a fixture wiki; `lru_cache` keeps one parse per process.
+    """
+    out: dict[str, dict] = {}
+    for _d, name in HUB_SPECS:
+        d = WIKI / name
+        if not d.exists():
+            continue
+        for p in d.glob("*.md"):
+            try:
+                fm = parse_frontmatter(read_text_cached(p))
+            except Exception:
+                continue
+            out[f"{d.name}/{p.name}"] = fm
+    return out
 
 
 def body_keep_lines(content: str) -> tuple[int, str]:
