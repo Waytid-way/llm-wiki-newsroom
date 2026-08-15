@@ -31,8 +31,8 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _lib import BASE_URL, GRAPH, REPO_ROOT, STANDALONE_SLUG, WIKI, deeplink_key, graph_deeplink_base, korean_mode, parse_page_meta, reject_args  # noqa: E402
-from _export.site import stage_site  # noqa: E402
+from _lib import BASE_URL, GRAPH, REPO_ROOT, STANDALONE_SLUG, WIKI, deeplink_key, graph_deeplink_base, korean_mode, parse_page_meta, reject_args, strip_frontmatter  # noqa: E402
+from _export.site import ASSETS, SHELL, stage_site  # noqa: E402
 
 OUT = REPO_ROOT / 'wiki-export'
 CLUSTERS_JSON = GRAPH / '_clusters.json'
@@ -165,9 +165,12 @@ def _strip_comment(m: re.Match) -> str:
 
 
 def _clean_body(text: str) -> str:
-    """Prepare a wiki page body for the RAG export: drop non-content HTML
+    """Prepare a wiki page body for the RAG export: drop the YAML frontmatter
+    block (raw frontmatter must not land as visible body text — in the merged
+    files it doubled the per-page '---' separator), drop non-content HTML
     comments, then rewrite repo-relative links. Collapses the blank-line runs
     left where stripped comments sat."""
+    text = strip_frontmatter(text)
     text = _HTML_COMMENT_RE.sub(_strip_comment, text)
     text = re.sub(r'\n{3,}', '\n\n', text)
     return _rewrite_links(text)
@@ -475,7 +478,29 @@ def _prune_stale(keep: set[str]) -> list[str]:
     return sorted(dropped)
 
 
+def _missing_site_assets() -> list[Path]:
+    """Graph/ inputs stage_site needs but which are absent, in stage_site's order.
+
+    graph.html + the four `_*.json` files (graph, clusters, overlays, pages) —
+    the same sources _export.site stages. `_pages.json` is gitignored (built by
+    tools/build.py), so on a fresh clone it is missing until the build pipeline
+    has run. Checking here — BEFORE the export dir is touched — turns the old
+    end-of-run FileNotFoundError crash (a half-rewritten wiki-export/ + raw
+    traceback) into a friendly abort that mutates nothing."""
+    return [p for p in (SHELL, *(GRAPH / f'_{name}' for name in ASSETS)) if not p.exists()]
+
+
 def main() -> int:
+    # Validate deploy assets up front: staging the site happens last, so without
+    # this guard a missing build artifact (e.g. gitignored graph/_pages.json on
+    # a fresh clone) would crash AFTER wiki-export/ was rewritten and pruned.
+    missing = _missing_site_assets()
+    if missing:
+        print('wiki-export/ NOT regenerated — graph assets missing, run '
+              '`python tools/build.py` before export:')
+        for p in missing:
+            print(f'  {p}')
+        return 1
     OUT.mkdir(exist_ok=True)
     root_meta = _copy_root_meta()
     folder_results = [r for r in (_merge_folder(f, o) for f, o in FOLDER_MERGES) if r]
