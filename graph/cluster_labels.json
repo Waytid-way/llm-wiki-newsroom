@@ -35,6 +35,17 @@
         "entities/Meta.md"
       ],
       "paired_with": ["open-source-ai-definition"]
+    },
+    {
+      "slug": "ai-agents-workflows",
+      "name": "AI Agents & Workflows",
+      "color": "#C7A0FF",
+      "anchor_members": [
+        "concepts/GraphEngineering.md",
+        "concepts/AgentLoop.md",
+        "concepts/HarnessEngineering.md"
+      ],
+      "paired_with": []
     }
   ]
 }

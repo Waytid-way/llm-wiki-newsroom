@@ -6,13 +6,14 @@ This file is auto-generated and updated.
 - [Overview](overview.md) — wiki-wide view along the landscape axis
 - [Contradiction Analysis](contradiction.md) — wiki-wide view along the conflict axis (1 contradictions, drill down by theme)
 
-## Sources (4)
+## Sources (5)
 For the full source list see the [source catalog](sources/_catalog.md), or browse by cluster:
 
 | Cluster | Count | Catalog |
 |----------|------|---------|
 | Open-Source AI Definition | 4 | [Open-Source AI Definition catalog](sources/_catalog-open-source-ai-definition.md) |
 | Licensing & Open-Washing | 3 | [Licensing & Open-Washing catalog](sources/_catalog-licensing-open-washing.md) |
+| AI Agents & Workflows | 1 | [AI Agents & Workflows catalog](sources/_catalog-ai-agents-workflows.md) |
 | Open Weights | 1 | [Open Weights catalog](sources/_catalog-open-weights.md) |
 
 ## Entities (5)
@@ -22,8 +23,11 @@ For the full source list see the [source catalog](sources/_catalog.md), or brows
 - [Mozilla](entities/Mozilla.md) — Mozilla is the nonprofit-backed technology organization that publicly endorsed the OpenSourceInitiative's Open Source AI Definition as "an important step forward." Mozilla frames openness and transparency as critical ingredients for AI safety and accountability, and its AI strategy lead Ayah Bdeir defended the OSAID's data-information requirement as going further than most proprietary or ostensibly open models do today.
 - [Open Source Initiative](entities/OpenSourceInitiative.md) — The Open Source Initiative (OSI) is the nonprofit, formed in 1998, that has stewarded the Open Source Definition for software and, in 2024-10, released the Open Source AI Definition (OSAID) 1.0.
 
-## Concepts (6)
+## Concepts (9)
+- [Agent Loop](concepts/AgentLoop.md) — Agent loop (loop engineering) คือชั้นที่ทำให้หน่วยงาน (agent) หนึ่งตัวดีขึ้นผ่าน feedback — การวนทำงาน ตรวจสอบ และแก้ไขภายใน agent เดียว ตามนิยามของ @0xwhrrari: "A loop helps one agent improve its work.
 - [Fine-Tuning](concepts/FineTuning.md) — Fine-tuning adapts a pre-trained model to a specific domain or task by continuing training on additional data, modifying or adding to the model's internal weights and parameters.
+- [Graph Engineering](concepts/GraphEngineering.md) — Graph engineering คือการเปลี่ยนขั้นตอนการทำงานของ AI agent ให้เป็นแผนผังการทำงานที่ชัดเจน (explicit execution map) แทนการซ่อนการตัดสินใจทั้งหมดไว้ใน model loop เดียว — ระบบถูกกำหนดเป็น nodes และ edges โดย node คือหน่วยงานที่มีขอบเขตชัดเจน (agent, tool call, deterministic function, verifier หรือ human approval) และ edge คือความสัมพันธ์ที่แท้จริงระหว่าง node (สิ่งที่ได้รับอนุญาตให้รันต่อ และข้อมูลที่ข้ามผ่านได้) แนวคิดหลักจาก @0xwhrrari: ลำดับ (sequence) ไม่เท่ากับ dependency — ถ้า node ถัดไปไม่ได้อ่านผลลัพธ์ของ node ก่อนหน้า ต้องตัด edge ทิ้ง; รูปทรง (topology) ของกราฟคือโมเดลต้นทุนของระบบ; "The model is only one node.
+- [Harness Engineering](concepts/HarnessEngineering.md) — Harness engineering คือการสร้างสิ่งแวดล้อมรอบตัวโมเดล (the machine that surrounds the model) —…
 - [Model Licensing](concepts/ModelLicensing.md) — Model licensing governs how an AI model may be used, modified, and redistributed, and it is where open-source AI diverges from traditional open-source software.
 - [Open Source AI](concepts/OpenSourceAI.md) — Open Source AI is an AI system released under terms that grant users four freedoms — to use, study, modify, and share the system for any purpose without asking permission.
 - [Open Weights](concepts/OpenWeights.md) — Open weights is a release model in which an AI provider publishes the trained weights and parameters needed to run a model, but typically withholds the training data, detailed data information, and training algorithms.

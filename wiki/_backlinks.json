@@ -239,6 +239,48 @@
       "title": "Open Weights"
     }
   ],
+  "GraphEngineering": [
+    {
+      "from": "sources/graph-engineering-whrrari.md",
+      "title": "Graph Engineering: ออกแบบ AI Agent ให้เป็นกราฟ (บทความ @0xwhrrari)"
+    },
+    {
+      "from": "concepts/AgentLoop.md",
+      "title": "Agent Loop"
+    },
+    {
+      "from": "concepts/HarnessEngineering.md",
+      "title": "Harness Engineering"
+    }
+  ],
+  "AgentLoop": [
+    {
+      "from": "sources/graph-engineering-whrrari.md",
+      "title": "Graph Engineering: ออกแบบ AI Agent ให้เป็นกราฟ (บทความ @0xwhrrari)"
+    },
+    {
+      "from": "concepts/GraphEngineering.md",
+      "title": "Graph Engineering"
+    },
+    {
+      "from": "concepts/HarnessEngineering.md",
+      "title": "Harness Engineering"
+    }
+  ],
+  "HarnessEngineering": [
+    {
+      "from": "sources/graph-engineering-whrrari.md",
+      "title": "Graph Engineering: ออกแบบ AI Agent ให้เป็นกราฟ (บทความ @0xwhrrari)"
+    },
+    {
+      "from": "concepts/AgentLoop.md",
+      "title": "Agent Loop"
+    },
+    {
+      "from": "concepts/GraphEngineering.md",
+      "title": "Graph Engineering"
+    }
+  ],
   "Mozilla": [
     {
       "from": "sources/mozilla-celebrates-osaid.md",

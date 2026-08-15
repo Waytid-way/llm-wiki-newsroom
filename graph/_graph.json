@@ -1,8 +1,23 @@
 {
   "nodes": [
     {
+      "id": "concepts/AgentLoop.md",
+      "label": "Agent Loop",
+      "type": "concept"
+    },
+    {
       "id": "concepts/FineTuning.md",
       "label": "Fine-Tuning",
+      "type": "concept"
+    },
+    {
+      "id": "concepts/GraphEngineering.md",
+      "label": "Graph Engineering",
+      "type": "concept"
+    },
+    {
+      "id": "concepts/HarnessEngineering.md",
+      "label": "Harness Engineering",
       "type": "concept"
     },
     {
@@ -61,6 +76,11 @@
       "type": "source"
     },
     {
+      "id": "sources/graph-engineering-whrrari.md",
+      "label": "Graph Engineering: ออกแบบ AI Agent ให้เป็นกราฟ (บทความ @0xwhrrari)",
+      "type": "source"
+    },
+    {
       "id": "sources/mozilla-celebrates-osaid.md",
       "label": "Celebrating an Important Step Forward for Open Source AI (Mozilla)",
       "type": "source"
@@ -77,6 +97,20 @@
     }
   ],
   "edges": [
+    {
+      "from": "concepts/AgentLoop.md",
+      "to": "concepts/GraphEngineering.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "กราฟประสานหลาย loops เป็นระบบเดียว"
+    },
+    {
+      "from": "concepts/AgentLoop.md",
+      "to": "concepts/HarnessEngineering.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "สิ่งแวดล้อมรอบตัวโมเดลที่ loop ทำงานอยู่"
+    },
     {
       "from": "concepts/FineTuning.md",
       "to": "concepts/OpenWeights.md",
@@ -104,6 +138,34 @@
       "type": "EXTRACTED",
       "relation": "references",
       "label": "fine-tuning is one of the four freedoms (modify)"
+    },
+    {
+      "from": "concepts/GraphEngineering.md",
+      "to": "concepts/AgentLoop.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "loop ทำให้ agent หนึ่งตัวดีขึ้น; graph ประสานหลาย loops เป็นระบบเดียว"
+    },
+    {
+      "from": "concepts/GraphEngineering.md",
+      "to": "concepts/HarnessEngineering.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "harness สร้างสิ่งแวดล้อมรอบตัวโมเดล; graph วางโครงสร้าง coordination เหนือสิ่งแว"
+    },
+    {
+      "from": "concepts/HarnessEngineering.md",
+      "to": "concepts/GraphEngineering.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "กราฟวางโครงสร้าง coordination เหนือสิ่งแวดล้อมของ harness"
+    },
+    {
+      "from": "concepts/HarnessEngineering.md",
+      "to": "concepts/AgentLoop.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "loop คือ run ที่ทำงานภายใน harness"
     },
     {
       "from": "concepts/ModelLicensing.md",
@@ -485,6 +547,28 @@
       "label": "the dispute is over what licensing terms count as open"
     },
     {
+      "from": "sources/graph-engineering-whrrari.md",
+      "to": "concepts/AgentLoop.md",
+      "type": "EXTRACTED",
+      "relation": "cites",
+      "label": "กราฟคือชั้นถัดจาก loop (coordination ของหลาย loops); ผู้เขียนมีบทความ \"Loop Engi",
+      "evidence_grade": "analysis"
+    },
+    {
+      "from": "sources/graph-engineering-whrrari.md",
+      "to": "concepts/HarnessEngineering.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "\"Harness engineering สร้างสิ่งแวดล้อมรอบตัวโมเดล\" ต่างจาก graph engineering ที่ป"
+    },
+    {
+      "from": "sources/graph-engineering-whrrari.md",
+      "to": "concepts/GraphEngineering.md",
+      "type": "EXTRACTED",
+      "relation": "cites",
+      "evidence_grade": "analysis"
+    },
+    {
       "from": "sources/mozilla-celebrates-osaid.md",
       "to": "entities/Mozilla.md",
       "type": "EXTRACTED",
@@ -678,20 +762,20 @@
     }
   ],
   "stats": {
-    "node_count": 15,
-    "edge_count": 81,
-    "extracted_edges": 78,
+    "node_count": 19,
+    "edge_count": 90,
+    "extracted_edges": 87,
     "inferred_edges": 3,
     "relations": {
-      "defines": 36,
-      "references": 27,
-      "cites": 14,
+      "defines": 42,
+      "references": 28,
+      "cites": 16,
       "contradicts": 1
     },
     "types": {
-      "concept": 6,
+      "concept": 9,
       "entity": 5,
-      "source": 4
+      "source": 5
     }
   }
 }

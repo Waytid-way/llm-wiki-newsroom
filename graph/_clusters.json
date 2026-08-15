@@ -1,20 +1,20 @@
 {
   "method": "leiden",
-  "graph_fingerprint": "a0af7308fcdc2050",
+  "graph_fingerprint": "e3a77020f296d4ee",
   "resolution": 1.0,
   "seed": 42,
   "source_weight_threshold": 0.3,
   "coherence_threshold": 0.25,
   "hysteresis_threshold": 0.5,
   "stats": {
-    "hub_nodes": 11,
-    "hub_edges": 33,
+    "hub_nodes": 14,
+    "hub_edges": 36,
     "isolated_hubs": 0,
-    "cluster_count": 3,
+    "cluster_count": 4,
     "mixed_clusters": 0,
     "unlabeled_clusters": 0,
-    "hysteresis_carried": 3,
-    "sources_assigned": 4,
+    "hysteresis_carried": 4,
+    "sources_assigned": 5,
     "sources_unassigned": 0
   },
   "clusters": [
@@ -69,6 +69,51 @@
     },
     {
       "id": 1,
+      "slug": "ai-agents-workflows",
+      "name": "AI Agents & Workflows",
+      "color": "#C7A0FF",
+      "matched_label_slug": "ai-agents-workflows",
+      "containment": 1.0,
+      "anchor_hits": 3,
+      "match_method": "hysteresis",
+      "hysteresis_jaccard": 1.0,
+      "size": 3,
+      "members": [
+        "concepts/AgentLoop.md",
+        "concepts/GraphEngineering.md",
+        "concepts/HarnessEngineering.md"
+      ],
+      "member_labels": [
+        "Agent Loop",
+        "Graph Engineering",
+        "Harness Engineering"
+      ],
+      "top_tags": [
+        [
+          "ai-agents",
+          3
+        ],
+        [
+          "workflows",
+          3
+        ],
+        [
+          "agent-architecture",
+          2
+        ],
+        [
+          "loop-engineering",
+          1
+        ],
+        [
+          "graph-engineering",
+          1
+        ]
+      ],
+      "coherence": "single"
+    },
+    {
+      "id": 2,
       "slug": "open-weights",
       "name": "Open Weights",
       "color": "#7FE0B0",
@@ -113,7 +158,7 @@
       "coherence": "single"
     },
     {
-      "id": 2,
+      "id": 3,
       "slug": "licensing-open-washing",
       "name": "Licensing & Open-Washing",
       "color": "#FFC97F",
@@ -164,6 +209,9 @@
     "entities/FreeSoftwareFoundation.md": "open-source-ai-definition",
     "entities/Mozilla.md": "open-source-ai-definition",
     "entities/OpenSourceInitiative.md": "open-source-ai-definition",
+    "concepts/AgentLoop.md": "ai-agents-workflows",
+    "concepts/GraphEngineering.md": "ai-agents-workflows",
+    "concepts/HarnessEngineering.md": "ai-agents-workflows",
     "concepts/FineTuning.md": "open-weights",
     "concepts/OpenWeights.md": "open-weights",
     "entities/DeepSeek.md": "open-weights",
@@ -177,6 +225,12 @@
       "weights": {
         "open-source-ai-definition": 0.667,
         "licensing-open-washing": 0.333
+      }
+    },
+    "sources/graph-engineering-whrrari.md": {
+      "primary": "ai-agents-workflows",
+      "weights": {
+        "ai-agents-workflows": 1.0
       }
     },
     "sources/mozilla-celebrates-osaid.md": {

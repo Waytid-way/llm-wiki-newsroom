@@ -1,9 +1,9 @@
 # Overview
 
 <!-- AUTO:STATS BEGIN -->
-This wiki is a knowledge base comprising **4 source documents** (2024~2025), **5 entities**, **6 concepts**, **3 field overviews**, **1 analysis reports**, **0 associative trails**, and **0 timelines**.
+This wiki is a knowledge base comprising **5 source documents** (2024~2026), **5 entities**, **9 concepts**, **4 field overviews**, **1 analysis reports**, **0 associative trails**, and **0 timelines**.
 
-Sources are automatically classified into 3 topic clusters via Leiden topology clustering: **Open-Source AI Definition(4)**, **Open Weights(1)**, **Licensing & Open-Washing(3)**. A single source may span multiple clusters (listed in every catalog where its weight is ≥0.3); for the full cluster list and members, see [[index]] or `graph/_clusters.json`.
+Sources are automatically classified into 4 topic clusters via Leiden topology clustering: **Open-Source AI Definition(4)**, **AI Agents & Workflows(1)**, **Open Weights(1)**, **Licensing & Open-Washing(3)**. A single source may span multiple clusters (listed in every catalog where its weight is ≥0.3); for the full cluster list and members, see [[index]] or `graph/_clusters.json`.
 <!-- AUTO:STATS END -->
 
 This wiki maps the debate over what "open source" should mean for AI systems. The corpus gathers the [[OpenSourceInitiative]]'s 2024 attempt to fix a definition, the endorsement and criticism it drew, and the looser "open weights" releases that dominate the market in practice. Three groupings organize the field: the formal definition and its data dispute, the weights-only middle ground, and the licensing terms and open-washing that surround both. The strongest evidence base sits with the definition grouping, where the [[OpenSourceInitiative]] is the recurring claimant across multiple sources.
@@ -44,6 +44,14 @@ Licensing is where open-source AI diverges from software: permissive families (M
 The collision is whether a familiar permissive license is sufficient signal of openness or whether component completeness is the real test. [[DeepSeek]] R1's MIT-licensed-but-data-less release shows the two are independent, and as "open source" enters regulation, a soft line lets restricted models claim benefits meant for open ones.
 
 Details: [[licensing-open-washing|the Licensing & Open-Washing field]].
+
+## 4. [[ai-agents-workflows|AI Agents & Workflows]]
+
+This grouping is the corpus's first out-of-domain expansion: [[GraphEngineering|graph engineering]] reframes AI agent design as an explicit execution map of nodes, edges, state, routers and gates instead of a linear chain (research → write → review → ship) that serializes steps which never consume each other's output. The argument, from @0xwhrrari's article, is that the real problem is "the shape of the work" — sequence is not dependency, so independent steps should fan out and join deliberately rather than wait in line.
+
+The taxonomy sits on a five-layer ladder: prompt → context → [[HarnessEngineering|harness]] → [[AgentLoop|loop]] → graph, where a loop improves one agent and a graph coordinates many loops. The cost of the flexibility is token spend — topology is the cost model — so the practice demands verifiers at the edges, durable state for resume, per-node failure policies (RETRY/FALLBACK/SKIP/REPAIR/ESCALATE/STOP), hard stops on cycles, and a 12-point checklist before shipping. The author's caution applies to the wiki itself: start with a single loop and draw the graph only when dependencies force it — this cluster is currently a single source.
+
+Details: [[ai-agents-workflows|the AI Agents & Workflows field]].
 
 ## Cross-Domain Threads
 

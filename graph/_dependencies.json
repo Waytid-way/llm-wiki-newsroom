@@ -2,11 +2,16 @@
   "_meta": {
     "phase": "dependencies",
     "note": "layer-cascade upstream index — page → {upstream pages it derives from, newest upstream date}. Consumed by tools/_lint/staleness.py (uniform staleness rule). Additive; no existing behavior changed.",
-    "page_count": 23
+    "page_count": 28
   },
   "pages": {
     "sources/case-against-osaid.md": {
       "last_updated": "2026-06-26",
+      "upstream": [],
+      "upstream_max_date": null
+    },
+    "sources/graph-engineering-whrrari.md": {
+      "last_updated": "2026-08-16",
       "upstream": [],
       "upstream_max_date": null
     },
@@ -67,12 +72,33 @@
       ],
       "upstream_max_date": "2026-06-26"
     },
+    "concepts/AgentLoop.md": {
+      "last_updated": "2026-08-16",
+      "upstream": [
+        "sources/graph-engineering-whrrari.md"
+      ],
+      "upstream_max_date": "2026-08-16"
+    },
     "concepts/FineTuning.md": {
       "last_updated": "2026-06-26",
       "upstream": [
         "sources/open-source-ai-models-how-open.md"
       ],
       "upstream_max_date": "2026-06-26"
+    },
+    "concepts/GraphEngineering.md": {
+      "last_updated": "2026-08-16",
+      "upstream": [
+        "sources/graph-engineering-whrrari.md"
+      ],
+      "upstream_max_date": "2026-08-16"
+    },
+    "concepts/HarnessEngineering.md": {
+      "last_updated": "2026-08-16",
+      "upstream": [
+        "sources/graph-engineering-whrrari.md"
+      ],
+      "upstream_max_date": "2026-08-16"
     },
     "concepts/ModelLicensing.md": {
       "last_updated": "2026-06-26",
@@ -120,6 +146,15 @@
         "sources/mozilla-celebrates-osaid.md"
       ],
       "upstream_max_date": "2026-06-26"
+    },
+    "overviews/ai-agents-workflows.md": {
+      "last_updated": "2026-08-16",
+      "upstream": [
+        "concepts/AgentLoop.md",
+        "concepts/GraphEngineering.md",
+        "concepts/HarnessEngineering.md"
+      ],
+      "upstream_max_date": "2026-08-16"
     },
     "overviews/licensing-open-washing.md": {
       "last_updated": "2026-07-17",
@@ -175,11 +210,12 @@
     "overview.md": {
       "last_updated": null,
       "upstream": [
+        "overviews/ai-agents-workflows.md",
         "overviews/licensing-open-washing.md",
         "overviews/open-source-ai-definition.md",
         "overviews/open-weights.md"
       ],
-      "upstream_max_date": "2026-07-19"
+      "upstream_max_date": "2026-08-16"
     },
     "contradiction.md": {
       "last_updated": null,
