@@ -45,12 +45,17 @@ import requests
 sys.path.insert(0, str(Path(__file__).parent.parent))  # _ingest/ → tools/ root (shared modules)
 # _lib import also reconfigures stdout/stderr to UTF-8 (Windows cp949 console).
 from _lib import REPO_ROOT, atomic_write_text, canonicalize_url, reject_args  # noqa: E402
-from _net import UnsafeURLError  # noqa: E402
+from _net import UnsafeURLError, safe_get_stream  # noqa: E402
 from _ingest.fetch_article import (  # noqa: E402
+    HEADERS,
     fetch_html,
+    is_pdf_url,
     save_markdown,
+    save_pdf,
     sniff_and_save_pdf,
     unwrap_share_wrapper,
+    _pdf_title_from_response,
+    _stream_pdf_body,
 )
 
 
@@ -266,6 +271,24 @@ def fetch_one(
             if sniffed[0] == "duplicate":
                 return f"SKIPPED:duplicate-of-{sniffed[1]}", None
             return "OK", sniffed[1]
+
+        if is_pdf_url(url):
+            # Sniff declined to classify the response (e.g. a redirect to an
+            # opaque signed URL serving application/octet-stream or no
+            # Content-Type), but the original URL is a direct PDF — save it
+            # explicitly. The stream still follows redirects, so the dedup
+            # hook judges the redirect-resolved final URL (the same hole C13
+            # closed for the sniff path).
+            with safe_get_stream(url, headers=HEADERS, timeout=15) as r:
+                r.raise_for_status()
+                final_url = r.url
+                dup = dedup_index.get(canonicalize_url(final_url))
+                if dup:
+                    return f"SKIPPED:duplicate-of-{dup}", None
+                body = _stream_pdf_body(r)
+                title = _pdf_title_from_response(r)
+            path = save_pdf(final_url, body, title)
+            return "OK", path
 
         final_url, title, description, content = fetch_html(url, timeout=15)
         dup = dedup_index.get(canonicalize_url(final_url))
