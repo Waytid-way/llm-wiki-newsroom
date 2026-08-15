@@ -74,6 +74,14 @@ def find_unaliased_slugs(content: str, *, min_len: int = 10) -> list:
 # acronym on its first appearance. (Language-agnostic: uppercase acronyms occur in
 # English prose too.)
 _ABBR_RE = re.compile(r"(?<![A-Za-z])([A-Z][A-Z0-9]{1,4})(?![A-Za-z])")
+# Product/license names that look like acronyms but are proper names, not
+# abbreviations needing a gloss (enc.abbr-gloss): a corpus sentence like "the
+# report is MIT-licensed" does not demand a parenthetical. Checked BEFORE the
+# abbr rule, alongside the allowlist. Kept small and literal — only unambiguous
+# 2–5-char license/product names (Apache is 6 chars, so _ABBR_RE never sees it).
+_ABBR_PRODUCT_LICENSE_NAMES = {
+    "MIT", "GPL", "LGPL", "AGPL", "BSD", "MPL", "EPL", "CDDL", "CC",
+}
 _ABBR_ALLOWLIST = {
     "AI", "API", "GPU", "CPU", "RAM", "SSD", "HDD", "LLM", "ML", "DC",
     "IT", "AX", "DX", "CX", "ROI", "KPI", "RTO", "RPO", "DR", "BCP",
@@ -109,6 +117,8 @@ def find_abbr_violations(content: str) -> list:
     seen: dict = {}
     for m in _ABBR_RE.finditer(clean):
         abbr = m.group(1)
+        if abbr in _ABBR_PRODUCT_LICENSE_NAMES:
+            continue  # proper name (license/product), not an abbreviation to gloss
         if abbr in _ABBR_ALLOWLIST:
             continue
         if abbr not in seen:

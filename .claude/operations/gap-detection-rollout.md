@@ -137,7 +137,7 @@ https://example.com/article-C  # source=interactive query="..."
 | Level | Auto scope | Operator gate |
 |---|---|---|
 | **L1** Search-only | `lint gaps` → `wiki-news --batch` → `_inbox.md` append | explicit `/wiki-ingest inbox` call |
-| **L2** Safe Auto-Ingest | L1 + automatic `/wiki-ingest inbox --safe` for raw that passes the Safe 6 | gate-triggered raw is split to `raw/_review_queue.md` for operator review; commit/push stays manual |
+| **L2** Safe Auto-Ingest | L1 + automatic ingest of raw that passes the Safe 6 — the same plain `/wiki-ingest inbox` call (`tools/_ingest/fetch_inbox.py` takes no flags: any argument, `--safe` included, is rejected, so the Safe 6 pre-screen is operator-side, applied before the call) | gate-triggered raw is split to `raw/_review_queue.md` for operator review; commit/push stays manual |
 | ~~L3~~ Full Auto + Commit | — | **rejected** — an agent must never commit on its own |
 
 ### Safe 6 conditions (eligible for L2 auto-ingest)

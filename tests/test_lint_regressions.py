@@ -579,3 +579,48 @@ def test_is_themes_json_stale_consumes_shared_signals(monkeypatch, tmp_path):
     monkeypatch.setattr(CTh, "_staleness_signals", lambda d, today: (False, None))
     assert CTh.is_themes_json_stale() == (False, None)
 
+def test_a2_name_role_attribution_is_not_evasion():
+    """A2 (GG8b-1) — a 'Name, Role' attribution is exempt from the link-evasion
+    flag even when the name has a page: the org in a role line is not the speaker
+    ('Matt Garman, AWS CEO' is not AWS — cit.speaker-link note), so name-matching
+    would manufacture misattribution. A bare name with a page stays evasion."""
+    cit = _cit_checks()
+    page_index = {"Matt Garman": ("entities/Matt Garman.md", "entity")}
+
+    def a2(quote):
+        body = f"## Key Quotes\n{quote}\n\n## Connections\n"
+        return cit.evaluate_citation(
+            body, page_index=page_index, section_titles_fn=lambda rel: set()
+        )["a2"]
+
+    # 'Name, Role' with a page for the name → exempt, not evasion
+    assert a2('> "q" — Matt Garman, AWS CEO') == (True, 0, 0)
+    # lowercase role keyword ('co-founder') is title-ish too
+    assert a2('> "q" — Matt Garman, co-founder') == (True, 0, 0)
+    # a bare name with a page → still evasion
+    assert a2('> "q" — Matt Garman') == (False, 0, 1)
+
+
+def test_g2_accepts_plain_claimant_without_em_dash():
+    """G2 (GG8b-2) — a plain claimant needs no em dash separator: '[fact] Matt
+    Garman, AWS CEO said …' names the claimant in the head position, so the slot
+    is filled (cit.claimant-link: plain text with their role is the terminal form
+    below the page-creation threshold). A dash right after the grade marker
+    ('[fact] — Matt Garman said …') must not empty the slot either."""
+    cit = _cit_checks()
+    page_index = {"Matt Garman": ("entities/Matt Garman.md", "entity")}
+
+    def g2(line):
+        body = f"## Key Claims\n{line}\n\n## Connections\n"
+        return cit.evaluate_citation(
+            body, page_index=page_index, section_titles_fn=lambda rel: set()
+        )["g2"]
+
+    # plain claimant, no dash → PASS, counted as plain
+    ok = g2("- [fact] Matt Garman, AWS CEO said the plan was dropped")
+    assert ok[0] is True and ok[4] == 1
+    # dash before the claimant → PASS, counted as plain
+    ok2 = g2("- [fact] — Matt Garman said the plan was dropped")
+    assert ok2[0] is True and ok2[4] == 1
+    # the screening still applies: an existing page in the head slot is evasion
+    assert g2("- [fact] Matt Garman — said the plan was dropped")[0] is False

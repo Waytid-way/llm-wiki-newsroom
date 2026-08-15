@@ -38,9 +38,9 @@ News/explanatory journalism front-loads the point and descends into detail — i
 
 How each technique maps to a specific page/section/paragraph is defined by the `.claude/layers/` content-type guides.
 
-## Beat reporting framing (judge=M — beat reporting · stakeholder map)
+## Beat reporting framing (informational — not a measured criterion)
 
-Follow beat-reporting practice: an overview is not a one-off article but the product of sustained, cumulative coverage of a field. Present the actors not as a flat list but grouped by role (principal · partner · regulator — a stakeholder map). Resists deterministic measurement; judged qualitatively.
+Follow beat-reporting practice: an overview is not a one-off article but the product of sustained, cumulative coverage of a field. Present the actors not as a flat list but grouped by role (principal · partner · regulator — a stakeholder map). This is informational craft guidance, not a measured criterion — criteria.json has no beat-reporting entry (do not add one without review); the author and Desk apply it qualitatively.
 
 ## Sources
 

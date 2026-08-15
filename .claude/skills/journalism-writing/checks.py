@@ -23,6 +23,7 @@ from pathlib import Path
 # fire under WIKI_LANG=ko.
 QUALIFIER_PATTERNS = [
     re.compile(r"in the short[- ]term", re.IGNORECASE),
+    re.compile(r"in the near[- ]term", re.IGNORECASE),
     re.compile(r"on this metric", re.IGNORECASE),
     re.compile(r"within \d+ years?", re.IGNORECASE),
     re.compile(r"\bthis (?:study|sample|design|experiment)\b", re.IGNORECASE),
@@ -104,12 +105,22 @@ def evaluate_contradiction_dialectic(body: str, *, conflict_section: str) -> dic
     c_matches = list(C_LABEL_BROAD_RE.finditer(conflict_section))
     if c_matches:
         c_start = c_matches[0].start()
+        # Bound the C region the same way _dialectic_paragraph_words bounds the
+        # per-position bodies: the next dialectic label, else the next H2, else
+        # the end of the section — NOT the next bullet. A bulleted C position
+        # ('**C — Mediation**:\n- internal contradiction …') was truncated at its
+        # own first bullet, so its meta-critique keywords never registered. The
+        # label itself stays in the region (c_start unchanged).
         remainder = conflict_section[c_matches[0].end():]
-        next_bullet = re.search(r"\n\s*-\s+", remainder)
-        c_end = (
-            c_matches[0].end() + next_bullet.start()
-            if next_bullet else len(conflict_section)
-        )
+        next_label = DIALECTIC_LABEL_RE.search(remainder)
+        if next_label:
+            c_end = c_matches[0].end() + next_label.start()
+        else:
+            next_h2 = re.search(r"^##\s", remainder, re.MULTILINE)
+            c_end = (
+                c_matches[0].end() + next_h2.start()
+                if next_h2 else len(conflict_section)
+            )
         c_region = conflict_section[c_start:c_end]
         for kw in C_META_KEYWORDS:
             if kw in c_region:

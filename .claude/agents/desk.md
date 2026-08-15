@@ -95,6 +95,22 @@ If 0 defects are found, give 2–3 sentences of rationale for "why it was judged
 | L2-2 stub VERIFY₂ (person·company·institution·product/SW·concept, all together) | **mandatory** |
 | L2-1 source VERIFY₂ (sub-trigger) | **mandatory** — when `[fact] ≥ 7 AND quoted citations ≥ 3` is met |
 
+### Desk second-pass gate — hub promotion · demotion confirmation
+
+Beyond the per-page VERIFY₂ cells above, the desk also confirms the **hub
+promotion · demotion second-pass gates** that `python tools/lint.py hub
+promotion` / `hub demotion` surface as candidates. The gate criteria (moved here
+from `layers/hub.md` — the desk is the qualitative gate, so its criteria belong
+in this SoT):
+
+- **Promotion** (stub → Columnist full hub authoring) — the candidate must clear:
+  no overlap with an adjacent hub's synthesis area · no upward absorption into a
+  concept · no single-subject skew.
+- **Demotion** (plain-text demotion or deletion) — the candidate must clear:
+  narrative centrality · person significance; plus graph-integrity handling (on
+  deletion, redirect inbound `[[wikilink]]`s · substitute with plain text).
+  Gate-terminal hubs (including absorbed/delegated citation anchors) are excluded.
+
 ## Review Procedure
 
 ### Scope·Timing

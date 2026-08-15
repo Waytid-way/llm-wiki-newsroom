@@ -91,6 +91,30 @@ QUOTE_LINE_RE = re.compile(r"^>\s+[\"“”].+", re.MULTILINE)
 QUOTE_MARK_RE = re.compile(r"[\"“”]")
 SPEAKER_DASH_RE = re.compile(r"\s+[—–-]+\s+")
 SPEAKER_LINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
+# A "Name, Role" attribution ('Matt Garman, AWS CEO') — the post-comma segment is
+# a role/apposition line, and the org in a role line is not the speaker, so
+# name-matching would manufacture misattribution (cit.speaker-link note). Title-ish
+# = a capitalized word ('AWS CEO'·'OSI co-founder') or a known role keyword (covers
+# lowercase roles like 'co-founder').
+_ROLE_KEYWORD_RE = re.compile(
+    r"\b(?:CEO|CTO|CFO|COO|CIO|CMO|founder|co-?founder|president|vice[- ]president|"
+    r"chair(?:man|woman|person)?|director|head|chief|author|spokes(?:person|man|woman)|"
+    r"professor|minister|secretary|editor|lead|manager|officer|general|analyst|"
+    r"engineer|researcher|scientist|attorney|lawyer|partner|owner)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_role_line(attribution: str) -> bool:
+    """True for a 'Name, Role' attribution — a comma followed by title-ish text."""
+    if "," not in attribution:
+        return False
+    post = attribution.split(",", 1)[1].strip()
+    if not post:
+        return False
+    return bool(re.search(r"[A-Z]", post)) or bool(_ROLE_KEYWORD_RE.search(post))
+
+
 H2_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 # (dormant: G3 keys on the Korean "and" conjunctions 와/및 joining two hubs; never
 #  fires on English prose. An English equivalent would detect "and" between two
@@ -241,15 +265,29 @@ def evaluate_citation(
         m = GRADE_HEAD_RE.match(line)
         if not m:
             continue  # a missing grade marker is G1's business
-        rest = m.group(1)
+        rest = m.group(1).strip()
         if rest.startswith("[["):
             claimant_slot_filled += 1
             continue
-        head = rest.split("—", 1)[0].strip() if "—" in rest else ""
+        # (2) The em dash separates the claimant head from the claim content
+        # ('[fact] Matt Garman — said …'), and may also lead the line
+        # ('[fact] — Matt Garman said …'). A plain claimant needs no dash at
+        # all — 'Matt Garman, AWS CEO said …' names the claimant in the head
+        # position, so the whole rest is the head (cit.claimant-link: plain text
+        # with their role is the terminal form below the page-creation threshold).
+        if rest.startswith("—"):
+            head = rest[1:].strip()  # dash before the claimant — no separator to split on
+            head_too_long = False
+        elif "—" in rest:
+            head = rest.split("—", 1)[0].strip()
+            head_too_long = len(head) > CLAIMANT_HEAD_MAX
+        else:
+            head = rest  # plain claimant — no separator to define the slot
+            head_too_long = False
         # (3) A plain head that names a real page is evasion — it could have been linked.
         if (
             head
-            and len(head) <= CLAIMANT_HEAD_MAX
+            and not head_too_long
             and not _is_weasel_head(head)
             and head not in page_index
         ):
@@ -348,8 +386,15 @@ def evaluate_citation(
             a2_total += 1
             if link.group(1).strip() in page_index:
                 a2_with += 1
-        elif attribution.split(",", 1)[0].strip() in page_index:
-            a2_total += 1  # a plain name that has a page is link evasion, as in G2 (3)
+        elif (
+            attribution.split(",", 1)[0].strip() in page_index
+            and not _is_role_line(attribution)
+        ):
+            # a bare plain name that has a page is link evasion, as in G2 (3);
+            # a 'Name, Role' attribution is exempt — the org in a role line is
+            # not the speaker ('Matt Garman, AWS CEO'), so name-matching would
+            # manufacture misattribution (cit.speaker-link note, comment above)
+            a2_total += 1
         # else: plain-text speaker with no page — not judged
     a2_pass = a2_with == a2_total
 
