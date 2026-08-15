@@ -219,7 +219,7 @@ In the following situations, do not proceed automatically:
 
 ---
 
-## Agent skills
+## Matt Pocock skills
 
 ### Issue tracker
 
@@ -227,7 +227,7 @@ Issues and specs for this repo live as GitHub issues; use the `gh` CLI for all o
 
 ### Triage labels
 
-Five canonical triage roles mapped to default label strings: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+Five canonical triage roles mapped to default label strings: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`.
 
 ### Domain docs
 
