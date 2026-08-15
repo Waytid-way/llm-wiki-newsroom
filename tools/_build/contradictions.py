@@ -52,7 +52,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import GRADE_MARKER_RE, WIKI as wiki, atomic_write_if_changed, real_source_files, source_date_from_text  # noqa: E402
+from _lib import GRADE_MARKER_RE, WIKI as wiki, atomic_write_if_changed, real_source_files, section_body, slug_only, source_date_from_text  # noqa: E402
 
 TOOLS = Path(__file__).parent.parent
 RULES_PATH = TOOLS / "_contradiction_rules.json"
@@ -102,12 +102,8 @@ _FIRST_WIKILINK_RE = re.compile(
 
 # Grade marker on `## Key Claims` claim lines (Phase 2 atomic unit prefix):
 # shared GRADE_MARKER_RE from _lib (single definition with graph.py).
-
-# `## Key Claims` section body extraction
-_CLAIMS_SECTION_RE = re.compile(
-    r"^## Key Claims\s*\n(.*?)(?=\n## |\Z)", re.DOTALL | re.MULTILINE
-)
-
+# `## Key Claims` / `## Connections` section bodies come from the shared
+# _lib.section_body — no hand-rolled section regexes (C27).
 
 
 def _claim_id(claim: str) -> str:
@@ -145,13 +141,10 @@ def _collect() -> list[dict]:
     for fp in real_source_files(wiki):
         content = fp.read_text(encoding="utf-8", errors="replace")
         rel = f"sources/{fp.name}"
-        # Locate `## Connections` section
-        m = re.search(
-            r"^## Connections\s*\n(.*?)(?=\n## |\Z)", content, re.DOTALL | re.MULTILINE
-        )
-        if not m:
+        # Locate `## Connections` section (shared _lib.section_body — C27)
+        section = section_body(content, "Connections")
+        if not section:
             continue
-        section = m.group(1)
         for line_m in _CONTRADICTS_LINE_RE.finditer(section):
             claim_text = line_m.group(1).strip()
             if len(claim_text) < 5 or claim_text.strip().lower().rstrip(".") in SKIP_MARKERS:
@@ -215,9 +208,9 @@ def _build_source_metadata_cache() -> dict[str, dict]:
             continue
         date_str = source_date_from_text(text) or None
         primary_ratio = 0.0
-        section_m = _CLAIMS_SECTION_RE.search(text)
-        if section_m:
-            grades = GRADE_MARKER_RE.findall(section_m.group(1))
+        section = section_body(text, "Key Claims")
+        if section:
+            grades = GRADE_MARKER_RE.findall(section)
             if grades:
                 primary = sum(1 for g in grades if g == "fact")
                 primary_ratio = primary / len(grades)
@@ -231,13 +224,17 @@ def _hub_type(target_slug: str) -> str:
 
     Returns one of {entity, concept, source, missing}. Used to weight
     evidence_strength — entity targets (specific orgs/people) are more
-    verifiable than concept targets (abstract topics).
+    verifiable than concept targets (abstract topics). The raw link target
+    may carry a path prefix (`[[entities/X]]`) or `.md` suffix, so it is
+    normalized through the shared _lib.slug_only first — otherwise every
+    prefixed form silently resolved to "missing" (C30).
     """
-    if (wiki / "entities" / f"{target_slug}.md").exists():
+    slug = slug_only(target_slug).removesuffix(".md")
+    if (wiki / "entities" / f"{slug}.md").exists():
         return "entity"
-    if (wiki / "concepts" / f"{target_slug}.md").exists():
+    if (wiki / "concepts" / f"{slug}.md").exists():
         return "concept"
-    if (wiki / "sources" / f"{target_slug}.md").exists():
+    if (wiki / "sources" / f"{slug}.md").exists():
         return "source"
     return "missing"
 

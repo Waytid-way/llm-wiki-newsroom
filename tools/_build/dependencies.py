@@ -65,9 +65,7 @@ from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, WIKI_SUBDIRS, GRAPH, CLUSTERS_JSON, WIKILINK_RE, parse_frontmatter, strip_code, strip_frontmatter, atomic_write_if_changed, fm_sources  # noqa: E402
-
-_GYEONGNO_RE = re.compile(r"^##\s+Path\s*$.*?(?=^##\s|\Z)", re.MULTILINE | re.DOTALL)
+from _lib import PATH_ITEM_LINKED_RE, WIKI, WIKI_SUBDIRS, GRAPH, CLUSTERS_JSON, WIKILINK_RE, parse_frontmatter, section_body, strip_code, strip_frontmatter, atomic_write_if_changed, fm_sources  # noqa: E402
 
 
 def _first_date(fm: dict, keys: tuple[str, ...]) -> str | None:
@@ -145,22 +143,24 @@ def _body_link_upstream(body: str, stem_to_rel: dict) -> list[str]:
     return out
 
 
-_PATH_ITEM_RE = re.compile(r"^\s*\d+\.\s")
-
-
 def _trail_path_upstream(body: str, stem_to_rel: dict) -> list[str]:
     """Leading hub wikilink of each `## Path` numbered item — the path hops only.
-    Mirrors trail.py PATH_ITEM_LINKED_RE: inline explanatory links inside an
-    item's prose are NOT hops, so they are excluded (else an incidentally
-    mentioned hub's date would falsely mark the trail stale)."""
-    m = _GYEONGNO_RE.search(body)
-    if not m:
+
+    The `## Path` body comes from the shared _lib.section_body (C28), and a
+    line only counts as a hop when it matches the shared PATH_ITEM_LINKED_RE
+    (trail.py's own path-link rule — C32): the item must BEGIN with `N. [[`,
+    so inline explanatory links inside an item's prose are NOT hops and are
+    excluded (else an incidentally mentioned hub's date would falsely mark
+    the trail stale).
+    """
+    gyeongno = section_body(body, "Path")
+    if not gyeongno:
         return []
     out: list[str] = []
-    for line in m.group(0).splitlines():
-        if not _PATH_ITEM_RE.match(line):
+    for line in gyeongno.splitlines():
+        if not PATH_ITEM_LINKED_RE.match(line):
             continue
-        lm = WIKILINK_RE.search(line)  # first wikilink on the item line = the hop
+        lm = WIKILINK_RE.search(line)  # leading wikilink on the item line = the hop
         if not lm:
             continue
         target = stem_to_rel.get(lm.group(1).strip())

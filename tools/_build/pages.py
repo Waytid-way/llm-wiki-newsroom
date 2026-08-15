@@ -52,7 +52,11 @@ def run() -> None:
     missing = 0
     for n in nodes:
         nid = n["id"]
-        if Path(nid).name in ROOT_META:
+        # Root-scope guard, mirroring graph.py's `fp.parent == WIKI` idiom:
+        # only the wiki-ROOT meta files are excluded. A subdir page whose
+        # filename happens to collide with a root meta name (e.g. an entity
+        # `entities/overview.md`) must NOT be dropped (C33).
+        if Path(nid).parent == Path(".") and Path(nid).name in ROOT_META:
             continue
         fp = WIKI / nid
         if not fp.exists():

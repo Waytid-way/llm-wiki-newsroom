@@ -33,7 +33,7 @@ from datetime import date as _date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import CLUSTER_LABELS_JSON, CLUSTERS_JSON, H2_RE, WIKI, WIKILINK_ANY_RE, WIKILINK_RE as _LIB_WIKILINK_RE, WIKILINK_TARGET_RE, atomic_write_text, confirm_changes, korean_mode, parse_frontmatter, print_delete_cleanup_advisory, read_text_cached, safe_slug_path, slug_only, strip_frontmatter  # noqa: E402
+from _lib import CLUSTER_LABELS_JSON, CLUSTERS_JSON, H2_RE, WIKI, WIKILINK_ANY_RE, WIKILINK_RE as _LIB_WIKILINK_RE, WIKILINK_TARGET_RE, _skeleton_overview, atomic_write_text, confirm_changes, korean_mode, parse_frontmatter, print_delete_cleanup_advisory, read_text_cached, safe_slug_path, slug_only, strip_frontmatter  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent))
 from _advisory_common import mark  # noqa: E402
@@ -960,39 +960,6 @@ def _format_metrics_line(m: dict) -> list[str]:
         top = m["l3_violations"][:5]
         lines.append(f"    [Rubric] L3 unexplained: {', '.join(top)}")
     return lines
-
-
-def _skeleton_overview(cluster: dict) -> str:
-    """New-file template for wiki/overviews/<slug>.md (when missing)."""
-    today = _date.today().isoformat()
-    return (
-        f"---\n"
-        f"title: \"{cluster['name']}\"\n"
-        f"type: overview\n"
-        f"tags: []\n"
-        f"cluster: {cluster['slug']}\n"
-        f"sources: []\n"
-        f"last_updated: {today}\n"
-        f"---\n\n"
-        f"# {cluster['name']}\n\n"
-        f"## Overview\n\n"
-        f"_TODO: What this domain is and why it matters, plus the scope accumulated in the wiki, in 2–4 paragraphs._\n\n"
-        f"## Recent Changes\n\n"
-        f"_TODO: New events from the past ~3 months as 3–5 bullets with explicit dates (YYYY-MM[-DD]), in reverse chronological order (newest on top). "
-        f"This is the timeliness channel surfaced from the evergreen body — one line per bullet, one wikilink to a key hub._\n\n"
-        f"## Key Entities & Concepts\n\n"
-        f"_TODO: Reference the top members in the AUTO:MEMBERS block and describe them with a summary of their role·position._\n\n"
-        f"## Subtopics\n\n"
-        f"_TODO: A 2–4 sentence explanation per subtopic + [[wikilink]]._\n\n"
-        f"## Key Trends & Figures\n\n"
-        f"_TODO: Major events·figures·recent examples._\n\n"
-        f"## Adjacent Domains & Scope\n\n"
-        f"_TODO: Reference adjacent cluster overviews as [[<slug>|<cluster name>]] (a display-name alias is required — CLAUDE.md 'Cluster slug alias') + a one-line description of each boundary (2–4 bullets)._\n\n"
-        f"<!-- AUTO:MEMBERS BEGIN -->\n"
-        f"<!-- AUTO:MEMBERS END -->\n\n"
-        f"<!-- AUTO:SOURCES BEGIN -->\n"
-        f"<!-- AUTO:SOURCES END -->\n"
-    )
 
 
 def _build_cluster_map(clusters_data: dict) -> dict[str, dict]:

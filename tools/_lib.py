@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 
@@ -310,6 +311,17 @@ TIMELINE_DATE_ONLY_RE = re.compile(r"^\d{4}[\d\s\-.년월일]*(?:\s*\([^)]*\))?$
 # Bare H2 header line — group(1)=heading text. Single definition for the
 # per-module copies of this idiom (graph/source/trail).
 H2_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
+
+# Trail `## Path` numbered-item regex family — single definition shared by the
+# trail lint (`_lint/trail.py`, which checks the path-link contract) and the
+# dependency builder (`_build/dependencies.py`, which reads the hops as trail
+# upstream). One SoT so the two cannot drift on which lines count as a hop:
+#   PATH_ITEM_RE       any numbered item: `1. ...`, `12. ...` — group(1)=rest
+#   PATH_ITEM_LINKED_RE  item that BEGINS with a wikilink (bold/pipe alias
+#                      allowed): `N. [[Hub]] — ...` — inline explanatory links
+#                      inside an item's prose are not path hops
+PATH_ITEM_RE = re.compile(r"^\s*\d+\.\s+(.*)$", re.MULTILINE)
+PATH_ITEM_LINKED_RE = re.compile(r"^\s*\d+\.\s+\*{0,2}\[\[")
 
 
 def section_body(content: str, heading: str, *, prefix: bool = False) -> str:
@@ -1047,3 +1059,45 @@ def update_auto_block(content: str, name: str, new_body: str) -> tuple[str, bool
     # path or title fragment) would otherwise be parsed as a group reference
     # and crash the build (re.PatternError) or silently corrupt the block.
     return pattern.sub(lambda _m: replacement, content), True
+
+
+def _skeleton_overview(cluster: dict) -> str:
+    """New-file template for wiki/overviews/<slug>.md (when missing).
+
+    Single SoT — consumed by both the landscape builder (`_build/clusters.py`,
+    which writes the skeleton when an overview file is missing) and the
+    landscape lint (`_lint/overview.py`, whose MD↔JSON sync owns skeleton
+    creation and whose OVERVIEW_REQUIRED_SECTIONS schema check fails any
+    skeleton missing `## Recent Changes` / `## Adjacent Domains & Scope`).
+    Hoisted from the byte-identical copies those two modules used to carry
+    (C29): a divergence would make the lint flag the builder's own product.
+    """
+    today = date.today().isoformat()
+    return (
+        f"---\n"
+        f"title: \"{cluster['name']}\"\n"
+        f"type: overview\n"
+        f"tags: []\n"
+        f"cluster: {cluster['slug']}\n"
+        f"sources: []\n"
+        f"last_updated: {today}\n"
+        f"---\n\n"
+        f"# {cluster['name']}\n\n"
+        f"## Overview\n\n"
+        f"_TODO: What this domain is and why it matters, plus the scope accumulated in the wiki, in 2–4 paragraphs._\n\n"
+        f"## Recent Changes\n\n"
+        f"_TODO: New events from the past ~3 months as 3–5 bullets with explicit dates (YYYY-MM[-DD]), in reverse chronological order (newest on top). "
+        f"This is the timeliness channel surfaced from the evergreen body — one line per bullet, one wikilink to a key hub._\n\n"
+        f"## Key Entities & Concepts\n\n"
+        f"_TODO: Reference the top members in the AUTO:MEMBERS block and describe them with a summary of their role·position._\n\n"
+        f"## Subtopics\n\n"
+        f"_TODO: A 2–4 sentence explanation per subtopic + [[wikilink]]._\n\n"
+        f"## Key Trends & Figures\n\n"
+        f"_TODO: Major events·figures·recent examples._\n\n"
+        f"## Adjacent Domains & Scope\n\n"
+        f"_TODO: Reference adjacent cluster overviews as [[<slug>|<cluster name>]] (a display-name alias is required — CLAUDE.md 'Cluster slug alias') + a one-line description of each boundary (2–4 bullets)._\n\n"
+        f"<!-- AUTO:MEMBERS BEGIN -->\n"
+        f"<!-- AUTO:MEMBERS END -->\n\n"
+        f"<!-- AUTO:SOURCES BEGIN -->\n"
+        f"<!-- AUTO:SOURCES END -->\n"
+    )

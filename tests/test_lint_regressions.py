@@ -40,28 +40,29 @@ def test_paragraph_count_is_module_level_single_definition():
     assert overview._paragraph_count("") == 1  # minimum 1 (denominator protection)
 
 
-def test_skeleton_overview_copies_stay_in_lockstep():
-    """Audit regression — `_skeleton_overview` is deliberately duplicated between the
-    builder (`_build/clusters.py`, which writes the skeleton) and the lint SoT
-    (`_lint/overview.py`, which checks it). The two must emit byte-identical output or
-    the lint flags the builder's own product. This asserts the function bodies stay
-    identical (docstrings excluded) so a future edit to one copy fails loudly here."""
-    import ast
+def test_skeleton_overview_single_source_of_truth():
+    """C29 — `_skeleton_overview` was byte-identical copies in the builder
+    (`_build/clusters.py`, which writes the skeleton) and the lint SoT
+    (`_lint/overview.py`, which checks it). Hoisted into _lib: both modules
+    must consume the shared copy and neither may re-inline it, or a future
+    edit to one side diverges and the lint flags the builder's own product."""
+    from _build import clusters as C
+    from _lib import _skeleton_overview
+    import overview
 
-    def _body(path):
-        src = path.read_text(encoding="utf-8")
-        for node in ast.walk(ast.parse(src)):
-            if isinstance(node, ast.FunctionDef) and node.name == "_skeleton_overview":
-                if node.body and isinstance(node.body[0], ast.Expr) and isinstance(
-                    getattr(node.body[0], "value", None), ast.Constant
-                ):
-                    node.body = node.body[1:]  # drop the docstring
-                return ast.dump(node)
-        raise AssertionError(f"_skeleton_overview not found in {path}")
+    assert C._skeleton_overview is _skeleton_overview
+    assert overview._skeleton_overview is _skeleton_overview
 
-    build = _body(ROOT / "tools" / "_build" / "clusters.py")
-    lint = _body(ROOT / "tools" / "_lint" / "overview.py")
-    assert build == lint, "_skeleton_overview drifted between the builder and the lint SoT"
+    for rel in ("tools/_build/clusters.py", "tools/_lint/overview.py"):
+        src = (ROOT / rel).read_text(encoding="utf-8")
+        assert "def _skeleton_overview" not in src, (
+            f"{rel} re-inlined the shared skeleton (import it from _lib)"
+        )
+
+    # The shared copy still emits a schema-complete skeleton.
+    skel = _skeleton_overview({"name": "Test Cluster", "slug": "test-cluster"})
+    assert "## Recent Changes" in skel and "## Adjacent Domains & Scope" in skel
+    assert skel.startswith("---\n")
 
 
 def test_demotion_excludes_prose_embedded_hub(tmp_path):

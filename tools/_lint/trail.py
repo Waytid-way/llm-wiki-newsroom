@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from _lib import WIKI, atomic_write_text, cli_slug_path, parse_frontmatter, read_text_cached, section_body, strip_code, strip_frontmatter  # noqa: E402
+from _lib import PATH_ITEM_LINKED_RE, PATH_ITEM_RE, WIKI, atomic_write_text, cli_slug_path, parse_frontmatter, read_text_cached, section_body, strip_code, strip_frontmatter  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))  # tools/_lint/ — sibling import
 from _advisory_common import L1_RAW_SLUG_RE, iter_md, mark as _mark, print_rewrite_block  # noqa: E402
 
@@ -41,11 +41,8 @@ PATH_MIN, PATH_MAX = 4, 12
 # struct.path-length is optional per _manifest.json trail.roster / trail.md —
 # reported in the [Rubric]/PathLen output but never gates the exit code.
 REQUIRED_KEYS = ("schema", "path_links", "slug_alias")
-
-# A `## Path` numbered list item: `1. ...`, `12. ...`
-PATH_ITEM_RE = re.compile(r"^\s*\d+\.\s+(.*)$", re.MULTILINE)
-# Item must begin with a wikilink (allowing bold/pipe alias): `N. [[Hub]] — ...`
-PATH_ITEM_LINKED_RE = re.compile(r"^\s*\d+\.\s+\*{0,2}\[\[")
+# `## Path` numbered-item regexes (PATH_ITEM_RE / PATH_ITEM_LINKED_RE) are the
+# shared _lib definitions — the dependency builder reads the same hop rule.
 
 
 def _evaluate(rel: str, slug: str, content: str) -> dict:
