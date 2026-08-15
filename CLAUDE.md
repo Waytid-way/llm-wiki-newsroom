@@ -216,3 +216,19 @@ In the following situations, do not proceed automatically:
 - Changes to the skeleton of a guide, rubric, or matrix
 - External commit / push (exception: the system-managed inbox queue files `raw/_inbox.md`·`raw/_archive.md`, which `/wiki-ingest` Inbox Mode commits·pushes automatically)
 - A large body rewrite (>50% changed)
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs for this repo live as GitHub issues; use the `gh` CLI for all operations. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical triage roles mapped to default label strings: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
