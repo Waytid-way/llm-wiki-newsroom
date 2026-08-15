@@ -107,34 +107,10 @@ def _build_page_index() -> dict[str, tuple[str, str]]:
 # always returns exit code 0 so existing 1,283 non-compliant sources do
 # not block other lint groups. Migration completion flips this to False.
 # Acceptable residual fails — corpus-level migration tolerance.
-# Some claimants are intrinsically unfixable (general nouns, multi-entity
-# enumerations, single-cite people below stub threshold) and create
-# permanent G2/G4 fails that no further migration round can resolve.
-# Two-tier policy:
-#   1. INTRINSICALLY_UNFIXABLE_SOURCES — explicit whitelist of permanent
-#      residual fails (policy-aligned with `feedback_no_single_source_stub`:
-#      single-cite claimants below stub threshold, general nouns, etc.).
-#      These do NOT count toward ACCEPTABLE_FAILS.
-#   2. ACCEPTABLE_FAILS — natural-accumulation margin for unwhitelisted
-#      fails between ingest cycles. New regressions exceeding this
-#      threshold trigger hard fail.
-# Whitelist members are surfaced as advisory but excluded from threshold
-# enforcement so the margin remains a regression detector, not a hiding
-# mechanism.
+# ACCEPTABLE_FAILS — natural-accumulation margin for residual fails between
+# ingest cycles. New regressions exceeding this threshold trigger hard fail,
+# so the margin remains a regression detector, not a hiding mechanism.
 ACCEPTABLE_FAILS = 10
-
-# Permanent residual whitelist. Eligibility is narrow: the speaker cannot be named
-# by *any* route — neither a wikilink (below the `.claude/policies/naming.md`
-# entity-addition threshold) nor plain text (a generic-noun subject or a multi-actor
-# enumeration, where the speaker cannot be identified at all). Being below the page
-# threshold is NOT sufficient on its own: since G2 measures naming rather than
-# linking, a plain-text real name is a normal pass.
-# Before adding a slug, empty the whitelist and measure that a real FAIL remains —
-# an entry made to clear the threshold disables the check instead of recording a fact.
-# 2026-07-30 recount: the sole entry (`case-against-osaid`) was justified by
-# "carried as plain text rather than linked", which is now a supported pass path, so
-# it lost eligibility and was removed. The set is empty by design, not by oversight.
-INTRINSICALLY_UNFIXABLE_SOURCES: set[str] = set()
 
 # Required Rubric criteria — any FAIL on these
 # keys causes a non-zero exit (subject to ACCEPTABLE_FAILS at corpus level).
@@ -445,12 +421,6 @@ def run(target: str | None = None, fix: bool = False, **_kwargs) -> int:
             )
             return 1
         if any(not result[k][0] for k in REQUIRED_KEYS):
-            if slug in INTRINSICALLY_UNFIXABLE_SOURCES:
-                print(
-                    "\n  [Whitelist] permanent residual (INTRINSICALLY_UNFIXABLE_SOURCES) "
-                    "— REQUIRED_KEYS fail surfaced as advisory only."
-                )
-                return 0
             return 1
         return 0
 
@@ -520,29 +490,16 @@ def run(target: str | None = None, fix: bool = False, **_kwargs) -> int:
         r for r in results
         if any(not r[k][0] for k in REQUIRED_KEYS)
     ]
-    def _slug_of(r: dict) -> str:
-        return r["rel"].removeprefix("sources/").removesuffix(".md")
-    whitelisted = [r for r in failing if _slug_of(r) in INTRINSICALLY_UNFIXABLE_SOURCES]
-    whitelisted_slugs = {_slug_of(r) for r in whitelisted}
-    unwhitelisted = [r for r in failing if _slug_of(r) not in whitelisted_slugs]
-    if whitelisted:
+    if len(failing) > ACCEPTABLE_FAILS:
         print(
-            f"\n  [Whitelist] {len(whitelisted)} permanent residual "
-            f"(INTRINSICALLY_UNFIXABLE_SOURCES, policy: "
-            f".claude/policies/naming.md 'entity-addition threshold'). Excluded from "
-            f"ACCEPTABLE_FAILS threshold — surfaced as advisory only."
-        )
-    if len(unwhitelisted) > ACCEPTABLE_FAILS:
-        print(
-            f"\n  [Hard fail] {len(unwhitelisted)} new non-compliant sources "
-            f"exceeds ACCEPTABLE_FAILS={ACCEPTABLE_FAILS} (whitelist excluded). "
+            f"\n  [Hard fail] {len(failing)} new non-compliant sources "
+            f"exceeds ACCEPTABLE_FAILS={ACCEPTABLE_FAILS}. "
             f"Resolve regressions before merging — see Source Page Format in CLAUDE.md."
         )
         return 1
-    if unwhitelisted:
+    if failing:
         print(
-            f"\n  [Advisory] {len(unwhitelisted)}/{ACCEPTABLE_FAILS} natural-"
-            f"accumulation margin used — review for stub-threshold promotion "
-            f"or whitelist registration."
+            f"\n  [Advisory] {len(failing)}/{ACCEPTABLE_FAILS} natural-"
+            f"accumulation margin used — review for stub-threshold promotion."
         )
     return 0

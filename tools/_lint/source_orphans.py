@@ -39,6 +39,7 @@ from _lib import (  # noqa: E402
     parse_frontmatter,
     read_text_cached,
     real_source_files,
+    strip_code,
 )
 
 SRC = WIKI / "sources"
@@ -165,7 +166,7 @@ def _apply_backfill() -> int:
     Returns the number of hub files updated.
     """
     hubs: dict[str, Path] = {}
-    for subdir in ("entities", "concepts"):
+    for subdir in HUB_SUBDIRS:
         for p in (WIKI / subdir).glob("*.md"):
             if not p.name.startswith("_"):
                 hubs[p.stem] = p
@@ -324,7 +325,10 @@ def run(*, json_out: bool = False, fix: bool = False) -> int:
     for p in WIKI.rglob("*.md"):
         if p.name.startswith("_"):
             continue
-        text = read_text_cached(p)
+        # Mirror _lint/structure.py's corpus walk: code fences (and inline
+        # code) are stripped before link extraction — a `[[link]]` inside an
+        # example block is not a real reference and must not de-orphan a source.
+        text = strip_code(read_text_cached(p))
         for m in LINK_RE.findall(text):
             wikilinked.add(m.split("#", 1)[0].strip())
 

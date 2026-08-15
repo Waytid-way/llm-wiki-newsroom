@@ -11,7 +11,9 @@ Heuristics:
 
 Strict filters:
   - body text only (frontmatter, code blocks, inline code stripped)
-  - existing entity/concept/source stems excluded (after normalisation)
+  - existing page stems across all wiki content subdirs excluded (after
+    normalisation) — derived from _lib.WIKI_SUBDIRS so a page in overviews/
+    or contradictions/ counts as existing like any other
   - minimum mentions and minimum page count thresholds
   - the KOREAN_ALIAS/Korean-BLOCKLIST private-corpus curation applies only under
     korean_mode() (WIKI_LANG=ko), so it never suppresses/remaps English tokens
@@ -26,12 +28,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from _lib import (  # noqa: E402
+    WIKI,
+    WIKI_SUBDIRS,
+    WIKILINK_RE,
     korean_mode,
     read_text_cached,
-    WIKI,
-    WIKILINK_RE,
-    strip_frontmatter,
     strip_code,
+    strip_frontmatter,
 )
 
 LATIN_RE = re.compile(r"\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\b")
@@ -165,7 +168,7 @@ def _is_conjugated_korean(token: str) -> bool:
 def _index_existing_pages() -> tuple[set[str], dict[str, str]]:
     stems: set[str] = set()
     norm_map: dict[str, str] = {}
-    for sub in ("entities", "concepts", "syntheses", "trails", "timelines", "sources"):
+    for sub in WIKI_SUBDIRS:
         d = WIKI / sub
         if not d.exists():
             continue
@@ -220,7 +223,7 @@ def _candidates(*,
         mentions[token] += 1
         page_set[token].add(page_id)
 
-    for sub in ("sources", "entities", "concepts", "syntheses", "trails", "timelines"):
+    for sub in WIKI_SUBDIRS:
         d = WIKI / sub
         if not d.exists():
             continue
