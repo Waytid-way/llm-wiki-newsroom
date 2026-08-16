@@ -1,5 +1,11 @@
 # LLM Wiki Newsroom
 
+> **DEPRECATED / ARCHIVED (2026-08-16)** — canonical home moved to the private
+> [Waytid-way/newsroom-llm-wiki](https://github.com/Waytid-way/newsroom-llm-wiki).
+> All content (including `raw/` scraped archives) was migrated complete; this
+> public repo is kept as an archive only — file new issues/PRs on the new repo.
+> Framework upstream: [alfadur7/llm-wiki-newsroom](https://github.com/alfadur7/llm-wiki-newsroom).
+
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **A multi-agent AI knowledge base run by a five-role "newsroom" — open-source, local-first, no vendor lock-in.** Drop articles, documents, and PDFs into the `raw/` folder, type a single command, and the newsroom — powered by an agent like Claude Code — reads them, extracts entities, concepts, and relationships, and organizes everything into a fully cross-referenced wiki, a structured and persistent alternative to RAG. Unlike most takes on the idea, the agent that *writes* a page is never the one that *reviews* it, and the authoring guidelines evolve themselves over time. Every new document you add also enriches the existing pages. This repo ships with a small example corpus — the debate over what "open source" means for AI — under `wiki/`, but the framework is domain-agnostic.
