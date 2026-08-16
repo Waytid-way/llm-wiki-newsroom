@@ -41,13 +41,28 @@
       "type": "concept"
     },
     {
+      "id": "concepts/SecondBrain.md",
+      "label": "Second Brain",
+      "type": "concept"
+    },
+    {
       "id": "concepts/TrainingData.md",
       "label": "Training Data",
       "type": "concept"
     },
     {
+      "id": "concepts/VisualThinking.md",
+      "label": "Visual Thinking",
+      "type": "concept"
+    },
+    {
       "id": "entities/DeepSeek.md",
       "label": "DeepSeek",
+      "type": "entity"
+    },
+    {
+      "id": "entities/Excalidraw.md",
+      "label": "Excalidraw",
       "type": "entity"
     },
     {
@@ -66,6 +81,11 @@
       "type": "entity"
     },
     {
+      "id": "entities/Obsidian.md",
+      "label": "Obsidian",
+      "type": "entity"
+    },
+    {
       "id": "entities/OpenSourceInitiative.md",
       "label": "Open Source Initiative",
       "type": "entity"
@@ -73,6 +93,11 @@
     {
       "id": "sources/case-against-osaid.md",
       "label": "The Case Against OSI's Open Source AI Definition",
+      "type": "source"
+    },
+    {
+      "id": "sources/excalidraw-visual-thinking-karlos.md",
+      "label": "Why 5 Million People Are OBSESSED With Excalidraw (วิดีโอสอน Excalidraw โดย Karlos)",
       "type": "source"
     },
     {
@@ -314,6 +339,27 @@
       "label": "a prominent open-weights model release"
     },
     {
+      "from": "concepts/SecondBrain.md",
+      "to": "entities/Obsidian.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "พื้นฐานของสมองที่สองในที่นี้: Markdown, wikilinks, embeds, Graph View"
+    },
+    {
+      "from": "concepts/SecondBrain.md",
+      "to": "entities/Excalidraw.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "ทำให้ภาพวาดเป็นส่วนหนึ่งของสมองที่สอง (ฝัง/ลิงก์/อัปเดต real-time)"
+    },
+    {
+      "from": "concepts/SecondBrain.md",
+      "to": "concepts/VisualThinking.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "สมองที่สองที่รับภาพได้ ปลดล็อกการคิดเชิงภาพ"
+    },
+    {
       "from": "concepts/TrainingData.md",
       "to": "concepts/OpenSourceAI.md",
       "type": "EXTRACTED",
@@ -349,6 +395,27 @@
       "label": "opaque training data is central to open-washing concerns"
     },
     {
+      "from": "concepts/VisualThinking.md",
+      "to": "entities/Excalidraw.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "เครื่องมือวาดที่ทำให้ visual thinking ต่อเข้ากับระบบโน้ตได้"
+    },
+    {
+      "from": "concepts/VisualThinking.md",
+      "to": "concepts/SecondBrain.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "ภาพวาดที่เชื่อมโยงได้คือส่วนหนึ่งของระบบสมองที่สอง"
+    },
+    {
+      "from": "concepts/VisualThinking.md",
+      "to": "entities/Obsidian.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "เจ้าบ้านของระบบ: vault คือโฟลเดอร์ไฟล์ข้อความ, wikilinks/embeds เชื่อมภาพกับความ"
+    },
+    {
       "from": "entities/DeepSeek.md",
       "to": "concepts/OpenWeights.md",
       "type": "EXTRACTED",
@@ -375,6 +442,27 @@
       "type": "EXTRACTED",
       "relation": "defines",
       "label": "the stricter standard R1 does not fully meet"
+    },
+    {
+      "from": "entities/Excalidraw.md",
+      "to": "entities/Obsidian.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "แพลตฟอร์มเจ้าบ้านที่ให้ wikilinks/embeds/Graph View"
+    },
+    {
+      "from": "entities/Excalidraw.md",
+      "to": "concepts/VisualThinking.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "เครื่องมือที่ทำให้การคิดเชิงภาพจับต้องได้ในระบบโน้ต"
+    },
+    {
+      "from": "entities/Excalidraw.md",
+      "to": "concepts/SecondBrain.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "วาดแล้วฝัง/ลิงก์เข้ากับสมองที่สองได้ทันที"
     },
     {
       "from": "entities/FreeSoftwareFoundation.md",
@@ -458,6 +546,27 @@
       "type": "EXTRACTED",
       "relation": "defines",
       "label": "the aspect Mozilla acknowledges some disagree with"
+    },
+    {
+      "from": "entities/Obsidian.md",
+      "to": "entities/Excalidraw.md",
+      "type": "EXTRACTED",
+      "relation": "defines",
+      "label": "ปลั๊กอินอันดับ 1 ที่ใช้พื้นฐาน links/embeds ของ Obsidian"
+    },
+    {
+      "from": "entities/Obsidian.md",
+      "to": "concepts/SecondBrain.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "vault คือสมองที่สอง; wikilinks/embeds คือกลไกเชื่อมโยง"
+    },
+    {
+      "from": "entities/Obsidian.md",
+      "to": "concepts/VisualThinking.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "พื้นฐาน Obsidian ก่อนวาดรูปช่วยให้ภาพเชื่อมกับความรู้ ไม่ใช่ภาพโดดเดี่ยว"
     },
     {
       "from": "entities/OpenSourceInitiative.md",
@@ -545,6 +654,34 @@
       "type": "EXTRACTED",
       "relation": "references",
       "label": "the dispute is over what licensing terms count as open"
+    },
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "to": "concepts/VisualThinking.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "วิทยานิพนธ์หลักของคลิป: การวาดภาพปลดล็อกไอเดีย (อ้าง da Vinci / Einstein)"
+    },
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "to": "concepts/SecondBrain.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "Excalidraw เชื่อมภาพวาดเข้ากับระบบสมองที่สองใน Obsidian; \"back of note card\" = โ"
+    },
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "to": "entities/Obsidian.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "แพลตฟอร์มเจ้าบ้าน: Markdown, wikilinks, embeds, Graph View คือฐานของพลัง Excalid"
+    },
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "to": "entities/Excalidraw.md",
+      "type": "EXTRACTED",
+      "relation": "references",
+      "label": "ตัวผลิตภัณฑ์ที่ถูกสอน: infinite canvas, vector, การฝัง/ลิงก์สองทาง, scripts"
     },
     {
       "from": "sources/graph-engineering-whrrari.md",
@@ -762,20 +899,20 @@
     }
   ],
   "stats": {
-    "node_count": 19,
-    "edge_count": 90,
-    "extracted_edges": 87,
+    "node_count": 24,
+    "edge_count": 106,
+    "extracted_edges": 103,
     "inferred_edges": 3,
     "relations": {
-      "defines": 42,
-      "references": 28,
+      "defines": 48,
+      "references": 38,
       "cites": 16,
       "contradicts": 1
     },
     "types": {
-      "concept": 9,
-      "entity": 5,
-      "source": 5
+      "concept": 11,
+      "entity": 7,
+      "source": 6
     }
   }
 }

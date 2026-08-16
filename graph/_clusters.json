@@ -1,20 +1,20 @@
 {
   "method": "leiden",
-  "graph_fingerprint": "e3a77020f296d4ee",
+  "graph_fingerprint": "103bfc0272ceb4ae",
   "resolution": 1.0,
   "seed": 42,
   "source_weight_threshold": 0.3,
   "coherence_threshold": 0.25,
   "hysteresis_threshold": 0.5,
   "stats": {
-    "hub_nodes": 14,
-    "hub_edges": 36,
+    "hub_nodes": 18,
+    "hub_edges": 42,
     "isolated_hubs": 0,
-    "cluster_count": 4,
+    "cluster_count": 5,
     "mixed_clusters": 0,
     "unlabeled_clusters": 0,
     "hysteresis_carried": 4,
-    "sources_assigned": 5,
+    "sources_assigned": 6,
     "sources_unassigned": 0
   },
   "clusters": [
@@ -69,6 +69,53 @@
     },
     {
       "id": 1,
+      "slug": "pkm-note-taking",
+      "name": "Personal Knowledge Management & Visual Thinking",
+      "color": "#FF9AA2",
+      "matched_label_slug": "pkm-note-taking",
+      "containment": 1.0,
+      "anchor_hits": 4,
+      "match_method": "anchor",
+      "hysteresis_jaccard": null,
+      "size": 4,
+      "members": [
+        "concepts/SecondBrain.md",
+        "concepts/VisualThinking.md",
+        "entities/Excalidraw.md",
+        "entities/Obsidian.md"
+      ],
+      "member_labels": [
+        "Second Brain",
+        "Visual Thinking",
+        "Excalidraw",
+        "Obsidian"
+      ],
+      "top_tags": [
+        [
+          "pkm",
+          4
+        ],
+        [
+          "note-taking",
+          3
+        ],
+        [
+          "visual-thinking",
+          2
+        ],
+        [
+          "obsidian",
+          2
+        ],
+        [
+          "second-brain",
+          1
+        ]
+      ],
+      "coherence": "single"
+    },
+    {
+      "id": 2,
       "slug": "ai-agents-workflows",
       "name": "AI Agents & Workflows",
       "color": "#C7A0FF",
@@ -113,7 +160,7 @@
       "coherence": "single"
     },
     {
-      "id": 2,
+      "id": 3,
       "slug": "open-weights",
       "name": "Open Weights",
       "color": "#7FE0B0",
@@ -158,7 +205,7 @@
       "coherence": "single"
     },
     {
-      "id": 3,
+      "id": 4,
       "slug": "licensing-open-washing",
       "name": "Licensing & Open-Washing",
       "color": "#FFC97F",
@@ -209,6 +256,10 @@
     "entities/FreeSoftwareFoundation.md": "open-source-ai-definition",
     "entities/Mozilla.md": "open-source-ai-definition",
     "entities/OpenSourceInitiative.md": "open-source-ai-definition",
+    "concepts/SecondBrain.md": "pkm-note-taking",
+    "concepts/VisualThinking.md": "pkm-note-taking",
+    "entities/Excalidraw.md": "pkm-note-taking",
+    "entities/Obsidian.md": "pkm-note-taking",
     "concepts/AgentLoop.md": "ai-agents-workflows",
     "concepts/GraphEngineering.md": "ai-agents-workflows",
     "concepts/HarnessEngineering.md": "ai-agents-workflows",
@@ -225,6 +276,12 @@
       "weights": {
         "open-source-ai-definition": 0.667,
         "licensing-open-washing": 0.333
+      }
+    },
+    "sources/excalidraw-visual-thinking-karlos.md": {
+      "primary": "pkm-note-taking",
+      "weights": {
+        "pkm-note-taking": 1.0
       }
     },
     "sources/graph-engineering-whrrari.md": {

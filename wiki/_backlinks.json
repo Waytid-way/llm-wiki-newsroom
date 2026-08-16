@@ -239,6 +239,78 @@
       "title": "Open Weights"
     }
   ],
+  "VisualThinking": [
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "title": "Why 5 Million People Are OBSESSED With Excalidraw (วิดีโอสอน Excalidraw โดย Karlos)"
+    },
+    {
+      "from": "entities/Excalidraw.md",
+      "title": "Excalidraw"
+    },
+    {
+      "from": "entities/Obsidian.md",
+      "title": "Obsidian"
+    },
+    {
+      "from": "concepts/SecondBrain.md",
+      "title": "Second Brain"
+    }
+  ],
+  "SecondBrain": [
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "title": "Why 5 Million People Are OBSESSED With Excalidraw (วิดีโอสอน Excalidraw โดย Karlos)"
+    },
+    {
+      "from": "entities/Excalidraw.md",
+      "title": "Excalidraw"
+    },
+    {
+      "from": "entities/Obsidian.md",
+      "title": "Obsidian"
+    },
+    {
+      "from": "concepts/VisualThinking.md",
+      "title": "Visual Thinking"
+    }
+  ],
+  "Obsidian": [
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "title": "Why 5 Million People Are OBSESSED With Excalidraw (วิดีโอสอน Excalidraw โดย Karlos)"
+    },
+    {
+      "from": "entities/Excalidraw.md",
+      "title": "Excalidraw"
+    },
+    {
+      "from": "concepts/SecondBrain.md",
+      "title": "Second Brain"
+    },
+    {
+      "from": "concepts/VisualThinking.md",
+      "title": "Visual Thinking"
+    }
+  ],
+  "Excalidraw": [
+    {
+      "from": "sources/excalidraw-visual-thinking-karlos.md",
+      "title": "Why 5 Million People Are OBSESSED With Excalidraw (วิดีโอสอน Excalidraw โดย Karlos)"
+    },
+    {
+      "from": "entities/Obsidian.md",
+      "title": "Obsidian"
+    },
+    {
+      "from": "concepts/SecondBrain.md",
+      "title": "Second Brain"
+    },
+    {
+      "from": "concepts/VisualThinking.md",
+      "title": "Visual Thinking"
+    }
+  ],
   "GraphEngineering": [
     {
       "from": "sources/graph-engineering-whrrari.md",

@@ -46,6 +46,18 @@
         "concepts/HarnessEngineering.md"
       ],
       "paired_with": []
+    },
+    {
+      "slug": "pkm-note-taking",
+      "name": "Personal Knowledge Management & Visual Thinking",
+      "color": "#FF9AA2",
+      "anchor_members": [
+        "concepts/VisualThinking.md",
+        "concepts/SecondBrain.md",
+        "entities/Excalidraw.md",
+        "entities/Obsidian.md"
+      ],
+      "paired_with": []
     }
   ]
 }
