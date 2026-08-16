@@ -13,7 +13,7 @@
     "cluster_count": 5,
     "mixed_clusters": 0,
     "unlabeled_clusters": 0,
-    "hysteresis_carried": 4,
+    "hysteresis_carried": 5,
     "sources_assigned": 6,
     "sources_unassigned": 0
   },
@@ -75,8 +75,8 @@
       "matched_label_slug": "pkm-note-taking",
       "containment": 1.0,
       "anchor_hits": 4,
-      "match_method": "anchor",
-      "hysteresis_jaccard": null,
+      "match_method": "hysteresis",
+      "hysteresis_jaccard": 1.0,
       "size": 4,
       "members": [
         "concepts/SecondBrain.md",

@@ -2,7 +2,7 @@
   "_meta": {
     "phase": "dependencies",
     "note": "layer-cascade upstream index — page → {upstream pages it derives from, newest upstream date}. Consumed by tools/_lint/staleness.py (uniform staleness rule). Additive; no existing behavior changed.",
-    "page_count": 34
+    "page_count": 36
   },
   "pages": {
     "sources/case-against-osaid.md": {
@@ -239,6 +239,21 @@
       "last_updated": "2026-06-26",
       "upstream": [],
       "upstream_max_date": null
+    },
+    "syntheses/drawings-in-the-second-brain.md": {
+      "last_updated": "2026-08-16",
+      "upstream": [
+        "sources/excalidraw-visual-thinking-karlos.md"
+      ],
+      "upstream_max_date": "2026-08-16"
+    },
+    "syntheses/human-thought-tools-vs-agent-harnesses.md": {
+      "last_updated": "2026-08-16",
+      "upstream": [
+        "sources/excalidraw-visual-thinking-karlos.md",
+        "sources/graph-engineering-whrrari.md"
+      ],
+      "upstream_max_date": "2026-08-16"
     },
     "syntheses/open-source-ai-every-camp-standard.md": {
       "last_updated": "2026-07-19",

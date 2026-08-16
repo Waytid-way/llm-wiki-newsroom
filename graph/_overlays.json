@@ -2,6 +2,64 @@
   "overlays": [
     {
       "type": "synthesis",
+      "slug": "drawings-in-the-second-brain",
+      "title": "How Drawings Become Citizens of a Second Brain",
+      "flavor": "region",
+      "members": [
+        {
+          "id": "sources/excalidraw-visual-thinking-karlos.md"
+        },
+        {
+          "id": "concepts/VisualThinking.md"
+        },
+        {
+          "id": "concepts/SecondBrain.md"
+        },
+        {
+          "id": "entities/Excalidraw.md"
+        },
+        {
+          "id": "entities/Obsidian.md"
+        }
+      ]
+    },
+    {
+      "type": "synthesis",
+      "slug": "human-thought-tools-vs-agent-harnesses",
+      "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?",
+      "flavor": "region",
+      "members": [
+        {
+          "id": "sources/excalidraw-visual-thinking-karlos.md"
+        },
+        {
+          "id": "sources/graph-engineering-whrrari.md"
+        },
+        {
+          "id": "concepts/GraphEngineering.md"
+        },
+        {
+          "id": "concepts/AgentLoop.md"
+        },
+        {
+          "id": "concepts/HarnessEngineering.md"
+        },
+        {
+          "id": "concepts/VisualThinking.md"
+        },
+        {
+          "id": "concepts/SecondBrain.md"
+        },
+        {
+          "id": "entities/Excalidraw.md"
+        },
+        {
+          "id": "entities/Obsidian.md"
+        }
+      ]
+    },
+    {
+      "type": "synthesis",
       "slug": "open-source-ai-every-camp-standard",
       "title": "What Counts as Open Source AI Under Every Camp's Standard",
       "flavor": "region",
@@ -63,6 +121,94 @@
     }
   ],
   "node_overlays": {
+    "sources/excalidraw-visual-thinking-karlos.md": [
+      {
+        "type": "synthesis",
+        "slug": "drawings-in-the-second-brain",
+        "title": "How Drawings Become Citizens of a Second Brain"
+      },
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "concepts/VisualThinking.md": [
+      {
+        "type": "synthesis",
+        "slug": "drawings-in-the-second-brain",
+        "title": "How Drawings Become Citizens of a Second Brain"
+      },
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "concepts/SecondBrain.md": [
+      {
+        "type": "synthesis",
+        "slug": "drawings-in-the-second-brain",
+        "title": "How Drawings Become Citizens of a Second Brain"
+      },
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "entities/Excalidraw.md": [
+      {
+        "type": "synthesis",
+        "slug": "drawings-in-the-second-brain",
+        "title": "How Drawings Become Citizens of a Second Brain"
+      },
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "entities/Obsidian.md": [
+      {
+        "type": "synthesis",
+        "slug": "drawings-in-the-second-brain",
+        "title": "How Drawings Become Citizens of a Second Brain"
+      },
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "sources/graph-engineering-whrrari.md": [
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "concepts/GraphEngineering.md": [
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "concepts/AgentLoop.md": [
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
+    "concepts/HarnessEngineering.md": [
+      {
+        "type": "synthesis",
+        "slug": "human-thought-tools-vs-agent-harnesses",
+        "title": "Do Human Thought Tools and AI Agent Harnesses Share Structure?"
+      }
+    ],
     "sources/osi-open-source-ai-definition.md": [
       {
         "type": "synthesis",

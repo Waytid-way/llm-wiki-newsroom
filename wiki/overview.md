@@ -1,7 +1,7 @@
 # Overview
 
 <!-- AUTO:STATS BEGIN -->
-This wiki is a knowledge base comprising **6 source documents** (2024~2026), **7 entities**, **11 concepts**, **5 field overviews**, **1 analysis reports**, **0 associative trails**, and **0 timelines**.
+This wiki is a knowledge base comprising **6 source documents** (2024~2026), **7 entities**, **11 concepts**, **5 field overviews**, **3 analysis reports**, **0 associative trails**, and **0 timelines**.
 
 Sources are automatically classified into 5 topic clusters via Leiden topology clustering: **Open-Source AI Definition(4)**, **Personal Knowledge Management & Visual Thinking(1)**, **AI Agents & Workflows(1)**, **Open Weights(1)**, **Licensing & Open-Washing(3)**. A single source may span multiple clusters (listed in every catalog where its weight is ≥0.3); for the full cluster list and members, see [[index]] or `graph/_clusters.json`.
 <!-- AUTO:STATS END -->

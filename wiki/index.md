@@ -39,5 +39,7 @@ For the full source list see the [source catalog](sources/_catalog.md), or brows
 - [Training Data](concepts/TrainingData.md) — Training data is the corpus a model learns from, and whether it must be released is the central dispute in the OpenSourceAI debate.
 - [Visual Thinking](concepts/VisualThinking.md) — Thinking through externalized visuals — sketches, diagrams, knowledge maps — as the unlock for ideas; the thesis of Karlos's Excalidraw tutorial (da Vinci, Einstein), where drawings live inside the note system instead of isolated subscription apps.
 
-## Analyses (1)
+## Analyses (3)
+- [Do Human Thought Tools and AI Agent Harnesses Share Structure?](syntheses/human-thought-tools-vs-agent-harnesses.md) — ใช่ ในชั้นโครงสร้าง: ทั้งสองแนวทางย้าย "การคิด" ออกจากตัวคิด (สมองมนุษย์ / โมเดล)…
+- [How Drawings Become Citizens of a Second Brain](syntheses/drawings-in-the-second-brain.md) — ภาพวาดจะกลายเป็น "พลเมือง" ของสมองที่สองได้ก็ต่อเมื่อมันอยู่ในระบบไฟล์เดียวกับโน้ต — ฝังได้ ลิงก์ได้สองทาง…
 - [What Counts as Open Source AI Under Every Camp's Standard](syntheses/open-source-ai-every-camp-standard.md) — To count as OpenSourceAI under *every* camp in this debate, a model has to clear the **stricter** of two bars — the open-data camp's, which on the FreeSoftwareFoundation's stated criteria contains the OpenSourceInitiative's.
