@@ -18,7 +18,7 @@ last_updated: 2026-08-16
 
 ## 2. Externalization ของความทรงจำ
 
-ทั้งสองฝั่งย้ายความทรงจำออกจากตัวคิดไปไว้ใน artifact ที่ resume ได้ ฝั่ง agent: durable state ที่บันทึก task_id, current_node, completed_nodes, artifacts, decisions, budgets — กราฟต้องตอบได้ว่าเกิดอะไรขึ้นแล้ว ทำไมเลือกเส้นทางนี้ และ resume ที่จุดไหน [[graph-engineering-whrrari]] ฝั่งมนุษย์: แพตเทิร์น "back of note card" — ไฟล์ .excalidraw คือไฟล์ .md ที่มีโค้ดวาด + ข้อความสรุปในไฟล์เดียว (วาดหน้า เขียนหลัง) [[excalidraw-visual-thinking-karlos]] ความขนานคือการออกแบบ: ความทรงจำไม่ได้อยู่ในหัว/ในน้ำหนักโมเดล แต่อยู่ในไฟล์ที่เปิดแล้ว "คิดต่อ" ได้ จุดต่างสำคัญ (วิเคราะห์): durable state ของ agent ถูกออกแบบให้ machine-readable เพื่อ routing/checkpoint ส่วน back of note card ถูกออกแบบให้ human-readable เพื่อการทบทวน — เป้าหมายร่วมคือการไม่เริ่มต้นใหม่จากศูนย์
+ทั้งสองฝั่งย้ายความทรงจำออกจากตัวคิดไปไว้ใน artifact ที่ resume ได้ ฝั่ง agent: durable state (สถานะถาวรของงานที่ continue ต่อได้) ที่บันทึก task_id, current_node, completed_nodes, artifacts, decisions, budgets — กราฟต้องตอบได้ว่าเกิดอะไรขึ้นแล้ว ทำไมเลือกเส้นทางนี้ และ resume ที่จุดไหน [[graph-engineering-whrrari]] ฝั่งมนุษย์: แพตเทิร์น "back of note card" — ไฟล์ .excalidraw คือไฟล์ .md ที่มีโค้ดวาด + ข้อความสรุปในไฟล์เดียว (วาดหน้า เขียนหลัง) [[excalidraw-visual-thinking-karlos]] ความขนานคือการออกแบบ: ความทรงจำไม่ได้อยู่ในหัว/ในน้ำหนักโมเดล แต่อยู่ในไฟล์ที่เปิดแล้ว "คิดต่อ" ได้ จุดต่างสำคัญ (วิเคราะห์): durable state ของ agent ถูกออกแบบให้ machine-readable เพื่อ routing/checkpoint ส่วน back of note card ถูกออกแบบให้ human-readable เพื่อการทบทวน — เป้าหมายร่วมคือการไม่เริ่มต้นใหม่จากศูนย์
 
 ## 3. โครงสร้างการประกอบ: กราฟ กับ การซ้อน
 

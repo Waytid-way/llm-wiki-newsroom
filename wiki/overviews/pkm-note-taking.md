@@ -39,7 +39,7 @@ Cluster นี้เป็นโดเมนใหม่ล่าสุดขอ
 
 ## Adjacent Domains & Scope
 
-- [[ai-agents-workflows|AI Agents & Workflows]] — cluster ข้ามโดเมนก่อนหน้า (graph engineering) เช่นกัน ไม่มีความเชื่อมโยงเชิงเนื้อหากับ PKM ในตอนนี้
+- [[ai-agents-workflows|AI Agents & Workflows]] — cluster ข้ามโดเมนก่อนหน้า (graph engineering); ต่อมาเชื่อมกับ PKM ผ่านการวิเคราะห์ "การ externalize ความคิด" ใน [[human-thought-tools-vs-agent-harnesses|synthesis ข้าม cluster]]
 - [[open-source-ai-definition|Open-Source AI Definition]] — cluster เดิมของ wiki ว่าด้วยมาตรฐาน open-source AI; ต่าง domain กัน
 
 <!-- AUTO:MEMBERS BEGIN -->
