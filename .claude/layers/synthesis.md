@@ -97,6 +97,7 @@ Craft principles, criteria, and thresholds are the SoT in the craft skills' `cri
 - **Integration value**: a synthesis is **a through-running analysis laid on top of** its underlying hubs·sources, not a repetition of their detail. If it's a mere summary, an overview·hub suffices.
 - **Join grounding** (`struct.join-grounded`): when fusing two sources into one claim, don't fabricate at the seam a fact present in neither source. Write a fused claim only after confirming each component in its own source span — a conflation where each half is true but only the combination is false is the synthesis-specific risk.
 - **Slug alias** (`enc.slug-alias`): no raw exposure of kebab-case slugs ≥ 10 chars — `[[ai-coding-10x-productivity-myth|METR 19% productivity myth]]`.
+  - **Operator-approved convention (2026-08-16, issue #13)**: a **bare inline source citation** in the body — `[[<source-slug>]]` placed as the attribution anchor for a claim — is accepted as corpus house style and is NOT flagged for aliasing, even when the slug is ≥ 10 chars. This matches the seed exemplar (`open-source-ai-every-camp-standard`), where inline source slugs are cited bare. The alias requirement still applies to *prose* link anchors (a wikilink read as part of the sentence) and to `## Connections` rosters. Do not re-litigate; do not force an alias onto an inline claim-anchor if it would break the Thai reading.
 - **Numeric precision** (`con.numeric-precision`): comparison numbers state unit·basis·point-in-time.
 
 ### Feedback loop (iterate until Rubric conditions met)
